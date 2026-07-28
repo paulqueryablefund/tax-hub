@@ -701,6 +701,27 @@ export type Database = {
           },
         ]
       }
+      query_expansion_cache: {
+        Row: {
+          created_at: string
+          model_id: string
+          normalized_query: string
+          terms: string[]
+        }
+        Insert: {
+          created_at?: string
+          model_id: string
+          normalized_query: string
+          terms: string[]
+        }
+        Update: {
+          created_at?: string
+          model_id?: string
+          normalized_query?: string
+          terms?: string[]
+        }
+        Relationships: []
+      }
       requests: {
         Row: {
           assigned_user_id: string
@@ -805,8 +826,36 @@ export type Database = {
         }
         Relationships: []
       }
+      retrieval_glossary: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          term_de: string[]
+          term_en: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          notes?: string | null
+          term_de: string[]
+          term_en: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          term_de?: string[]
+          term_en?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       source_passages: {
         Row: {
+          fts: unknown
           locator: string
           passage_id: string
           position: number
@@ -814,6 +863,7 @@ export type Database = {
           text: string
         }
         Insert: {
+          fts?: unknown
           locator: string
           passage_id: string
           position?: number
@@ -821,6 +871,7 @@ export type Database = {
           text: string
         }
         Update: {
+          fts?: unknown
           locator?: string
           passage_id?: string
           position?: number
@@ -991,6 +1042,29 @@ export type Database = {
     }
     Functions: {
       reset_demo: { Args: never; Returns: undefined }
+      search_passages: {
+        Args: {
+          caller_visibility?: string
+          max_results?: number
+          query_text: string
+        }
+        Returns: {
+          anchor_rank: number
+          exclusion_reason: string
+          fts_rank: number
+          fused_score: number
+          locator: string
+          passage_id: string
+          source_id: string
+          source_title: string
+          text: string
+          trgm_rank: number
+          url: string
+          used: boolean
+        }[]
+      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       [_ in never]: never
