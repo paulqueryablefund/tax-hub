@@ -12,6 +12,7 @@ import type {
   RequestOverview,
   RequestRecord,
   Source,
+  SourceRelation,
   TaxhubSnapshot,
   User,
   Workspace,
@@ -154,8 +155,20 @@ export async function buildSnapshot(db: Db): Promise<TaxhubSnapshot> {
     visibility: s.visibility as Source["visibility"],
     note: s.note ?? undefined,
     supersededByIds: supersessionRows
-      .filter((x) => x.source_id === s.id)
+      .filter(
+        (x): x is typeof x & { superseded_by_id: string } =>
+          x.source_id === s.id && x.relation === "superseded_by" && x.superseded_by_id !== null,
+      )
       .map((x) => x.superseded_by_id),
+    relations: supersessionRows
+      .filter((x) => x.source_id === s.id)
+      .map((x) => ({
+        relation: x.relation as SourceRelation["relation"],
+        targetSourceId: x.superseded_by_id ?? undefined,
+        targetLabel: x.target_label ?? undefined,
+        scope: x.scope ?? undefined,
+        effectiveNote: x.effective_note ?? undefined,
+      })),
     passages: passageRows
       .filter((p) => p.source_id === s.id)
       .map((p) => ({ id: p.passage_id, locator: p.locator, text: p.text })),
@@ -192,7 +205,11 @@ export async function buildSnapshot(db: Db): Promise<TaxhubSnapshot> {
     body: r.body,
     category: r.category as RequestRecord["category"],
     categoryConfidence: r.category_confidence as RequestRecord["categoryConfidence"],
-    status: r.lifecycle_status as RequestRecord["status"],
+    // Derived in the request_overview view from live intake and draft state.
+    // The stored lifecycle_status is only consulted there for the two
+    // human-set states (closed, awaiting_client) that no query can reconstruct.
+    status: (overviewRows.find((o) => o.request_id === r.id)?.status ??
+      r.lifecycle_status) as RequestRecord["status"],
     assignedUserId: r.assigned_user_id,
     dueDate: r.due_date ?? undefined,
     summary: r.narrative_summary,

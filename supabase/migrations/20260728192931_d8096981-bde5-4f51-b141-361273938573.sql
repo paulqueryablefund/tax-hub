@@ -1,0 +1,1 @@
+ALTER TABLE public.sources ALTER COLUMN effective_from DROP NOT NULL;

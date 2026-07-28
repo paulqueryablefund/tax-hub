@@ -47,6 +47,16 @@ function SourceDetail() {
     .filter(Boolean);
   const supersedes = sources.filter((s) => s.supersededByIds?.includes(source.id));
 
+  const relationLabels: Record<string, string> = {
+    superseded_by: "Replaced or amended by",
+    supersedes: "Replaces",
+    modified_by: "Modified by",
+    transitional_rule: "Transitional rule in",
+    conflicts_with: "Conflicts with",
+    depends_on: "Depends on",
+  };
+  const relations = source.relations ?? [];
+
   return (
     <div className="space-y-6">
       <nav aria-label="Breadcrumb" className="text-xs text-text-secondary">
@@ -110,7 +120,12 @@ function SourceDetail() {
       <Panel title="Document facts">
         <KeyValue
           items={[
-            { label: "Effective from", value: formatDate(source.effectiveFrom) },
+            {
+              label: "Effective from",
+              value: source.effectiveFrom
+                ? formatDate(source.effectiveFrom)
+                : "Not stated by the source",
+            },
             { label: "Last reviewed", value: formatDate(source.lastReviewed) },
             { label: "Visibility", value: source.visibility.replace(/_/g, " ") },
             { label: "Passages indexed", value: String(source.passages.length) },
@@ -160,6 +175,54 @@ function SourceDetail() {
                 </Link>
               </li>
             ))}
+          </ul>
+        </Panel>
+      ) : null}
+
+      {relations.length ? (
+        <Panel
+          title="Stated relationships to other documents"
+          description="Recorded in the direction the documents themselves state. A target outside this library is named, not linked."
+        >
+          <ul className="space-y-3 text-sm">
+            {relations.map((rel, i) => {
+              const target = rel.targetSourceId ? sourceById(rel.targetSourceId) : undefined;
+              return (
+                <li key={i} className="rounded-sm border border-border-subtle px-3 py-2">
+                  <p className="type-label mb-1">
+                    {relationLabels[rel.relation] ?? rel.relation.replace(/_/g, " ")}
+                  </p>
+                  <p>
+                    {rel.targetSourceId ? (
+                      target ? (
+                        <Link
+                          to="/sources/$sourceId"
+                          params={{ sourceId: target.id }}
+                          className="underline underline-offset-2"
+                        >
+                          {target.title}
+                        </Link>
+                      ) : (
+                        <span className="text-source-conflict">
+                          Broken reference — {rel.targetSourceId} is not in the library
+                        </span>
+                      )
+                    ) : (
+                      <span>
+                        {rel.targetLabel}{" "}
+                        <span className="text-text-secondary">(not held in this library)</span>
+                      </span>
+                    )}
+                  </p>
+                  {rel.scope ? (
+                    <p className="mt-1 text-text-secondary">Scope: {rel.scope}</p>
+                  ) : null}
+                  {rel.effectiveNote ? (
+                    <p className="mt-1 text-text-secondary">Effective: {rel.effectiveNote}</p>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
         </Panel>
       ) : null}

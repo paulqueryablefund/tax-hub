@@ -52,6 +52,25 @@ export type SourceKind =
 
 export type SourceHealth = "current" | "review_due" | "outdated" | "conflicting";
 
+export type SourceRelationKind =
+  | "superseded_by"
+  | "supersedes"
+  | "modified_by"
+  | "transitional_rule"
+  | "conflicts_with"
+  | "depends_on";
+
+/** A stated relationship to another document, in the direction the corpus states it. */
+export interface SourceRelation {
+  relation: SourceRelationKind;
+  /** Set when the other document is in the library. */
+  targetSourceId?: string;
+  /** Set instead when the other document is outside the library. */
+  targetLabel?: string;
+  scope?: string;
+  effectiveNote?: string;
+}
+
 export interface SourcePassage {
   id: string;
   locator: string;
@@ -69,12 +88,14 @@ export interface Source {
   isPublic: boolean;
   /** Explicitly flags the invented firm material used for the demo. */
   isFictional: boolean;
-  effectiveFrom: string;
+  /** Null when the source itself states no in-force date. Never guessed. */
+  effectiveFrom: string | null;
   lastReviewed: string;
   health: SourceHealth;
   visibility: "all_staff" | "professionals_only" | "partners_only";
   passages: SourcePassage[];
   supersededByIds?: string[];
+  relations: SourceRelation[];
   note?: string;
 }
 
