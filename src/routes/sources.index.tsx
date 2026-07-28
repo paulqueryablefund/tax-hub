@@ -19,9 +19,7 @@ import {
   SourceHealthBadge,
   formatDate,
 } from "@/features/taxhub/components/primitives";
-import { currentUserId, userById } from "@/features/taxhub/data/people";
-import { sources } from "@/features/taxhub/data/sources";
-import { logEvent } from "@/features/taxhub/store";
+import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 import type { SourceKind } from "@/features/taxhub/types";
 
 const kindLabels: Record<SourceKind, string> = {
@@ -143,9 +141,11 @@ function SourceLibrary() {
 }
 
 function AddSourceDialog() {
+  const { currentUser } = useTaxhub();
+  const { logActivity } = useTaxhubActions();
   const [name, setName] = useState("");
   const [done, setDone] = useState(false);
-  const actor = userById(currentUserId)!;
+  const actor = currentUser;
 
   return (
     <Dialog
@@ -191,7 +191,7 @@ function AddSourceDialog() {
             disabled={!name.trim() || done}
             onClick={() => {
               setDone(true);
-              logEvent({
+              logActivity.mutate({
                 actor: "user",
                 actorName: actor.name,
                 action: "Source submitted for indexing",
