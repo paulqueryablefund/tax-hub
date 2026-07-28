@@ -39,8 +39,6 @@ export const Route = createFileRoute("/knowledge")({
 
 type Phase = "idle" | "searching" | "answered" | "nothing";
 
-export default function noop() {}
-
 function Knowledge() {
   const [query, setQuery] = useState("");
   const [phase, setPhase] = useState<Phase>("idle");

@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InboxIndexRouteImport } from './routes/inbox.index'
 import { Route as IntakeRequestIdRouteImport } from './routes/intake.$requestId'
 import { Route as InboxRequestIdRouteImport } from './routes/inbox.$requestId'
 
+const KnowledgeRoute = KnowledgeRouteImport.update({
+  id: '/knowledge',
+  path: '/knowledge',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InboxRoute = InboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
@@ -44,12 +50,14 @@ const InboxRequestIdRoute = InboxRequestIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/inbox': typeof InboxRouteWithChildren
+  '/knowledge': typeof KnowledgeRoute
   '/inbox/$requestId': typeof InboxRequestIdRoute
   '/intake/$requestId': typeof IntakeRequestIdRoute
   '/inbox/': typeof InboxIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/knowledge': typeof KnowledgeRoute
   '/inbox/$requestId': typeof InboxRequestIdRoute
   '/intake/$requestId': typeof IntakeRequestIdRoute
   '/inbox': typeof InboxIndexRoute
@@ -58,6 +66,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/inbox': typeof InboxRouteWithChildren
+  '/knowledge': typeof KnowledgeRoute
   '/inbox/$requestId': typeof InboxRequestIdRoute
   '/intake/$requestId': typeof IntakeRequestIdRoute
   '/inbox/': typeof InboxIndexRoute
@@ -67,15 +76,17 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/inbox'
+    | '/knowledge'
     | '/inbox/$requestId'
     | '/intake/$requestId'
     | '/inbox/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/inbox/$requestId' | '/intake/$requestId' | '/inbox'
+  to: '/' | '/knowledge' | '/inbox/$requestId' | '/intake/$requestId' | '/inbox'
   id:
     | '__root__'
     | '/'
     | '/inbox'
+    | '/knowledge'
     | '/inbox/$requestId'
     | '/intake/$requestId'
     | '/inbox/'
@@ -84,11 +95,19 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   InboxRoute: typeof InboxRouteWithChildren
+  KnowledgeRoute: typeof KnowledgeRoute
   IntakeRequestIdRoute: typeof IntakeRequestIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/knowledge': {
+      id: '/knowledge'
+      path: '/knowledge'
+      fullPath: '/knowledge'
+      preLoaderRoute: typeof KnowledgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/inbox': {
       id: '/inbox'
       path: '/inbox'
@@ -142,6 +161,7 @@ const InboxRouteWithChildren = InboxRoute._addFileChildren(InboxRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   InboxRoute: InboxRouteWithChildren,
+  KnowledgeRoute: KnowledgeRoute,
   IntakeRequestIdRoute: IntakeRequestIdRoute,
 }
 export const routeTree = rootRouteImport
