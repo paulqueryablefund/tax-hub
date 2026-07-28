@@ -44,6 +44,7 @@ export const Route = createFileRoute("/drafts/$draftId")({
     ],
   }),
   component: DraftReview,
+  notFoundComponent: DraftNotFound,
 });
 
 function DraftNotFound() {
@@ -136,13 +137,21 @@ function DraftReview() {
         description={`Prepared ${formatDateTime(draft.generatedAt)}. Nothing has been sent.`}
       />
 
-      {!actor.canApprove ? (
+      {roleBlocked ? (
         <div
           data-tour="drafts.review-handoff"
           className="rounded-md border border-human-review-required/30 bg-human-review-required-bg px-4 py-3 text-sm text-human-review-required"
         >
           You are signed in as {actor.name} ({actor.role}) and cannot approve outgoing client
           correspondence. You can edit the draft and hand it to {approver.name}.
+        </div>
+      ) : null}
+
+      {!roleBlocked && evidenceBlocked ? (
+        <div className="rounded-md border border-ai-uncertain/40 bg-ai-uncertain-bg px-4 py-3 text-sm text-text-primary">
+          You may approve outgoing correspondence, but this reply is still blocked:{" "}
+          {unevidenced.map((f) => `"${f.label}"`).join(", ")} is recorded but not evidenced. The gate
+          is about evidence, not only about role.
         </div>
       ) : null}
 
@@ -237,9 +246,33 @@ function DraftReview() {
               </p>
             ) : (
               <div className="space-y-2">
+                {approvalBlocked ? (
+                  <>
+                    {/*
+                      aria-disabled rather than disabled: the control stays
+                      focusable, so a keyboard or screen-reader user reaches it
+                      and is told why it will not act, and by whom it can be.
+                    */}
+                    <Button
+                      className="w-full opacity-50"
+                      aria-disabled
+                      aria-describedby="approve-block-reason"
+                      onClick={() => {
+                        toast.error(blockReason);
+                        announce(blockReason);
+                      }}
+                    >
+                      <Check aria-hidden className="size-4" />
+                      Approve and send
+                    </Button>
+                    <p id="approve-block-reason" className="text-xs text-text-secondary">
+                      {blockReason}
+                    </p>
+                  </>
+                ) : (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button className="w-full" disabled={!actor.canApprove}>
+                    <Button className="w-full">
                       <Check aria-hidden className="size-4" />
                       Approve and send
                     </Button>
@@ -257,13 +290,10 @@ function DraftReview() {
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() =>
-                          updateDraftStatus.mutate({
-                            draftId: draft.id,
-                            status: "approved",
-                            actorUserId: actor.id,
-                            actorName: actor.name,
-                            note: `Approved and sent "${draft.subject}" to ${draft.recipient}.`,
-                          })
+                          decide(
+                            "approved",
+                            `Approved and sent "${draft.subject}" to ${draft.recipient}.`,
+                          )
                         }
                       >
                         Approve and send
@@ -271,19 +301,14 @@ function DraftReview() {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
+                )}
 
                 <Button
                   variant="outline"
                   className="w-full"
                   disabled={updateDraftStatus.isPending}
                   onClick={() =>
-                    updateDraftStatus.mutate({
-                      draftId: draft.id,
-                      status: "rejected",
-                      actorUserId: actor.id,
-                      actorName: actor.name,
-                      note: `Rejected "${draft.subject}". The case remains open.`,
-                    })
+                    decide("rejected", `Rejected "${draft.subject}". The case remains open.`)
                   }
                 >
                   <X aria-hidden className="size-4" />
