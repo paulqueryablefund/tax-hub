@@ -164,3 +164,49 @@ export interface ActivityEvent {
   /** Set when the event records a human decision on AI output. */
   decision?: "approved" | "rejected" | "corrected" | "escalated";
 }
+
+export interface Workspace {
+  id: string;
+  firmName: string;
+  shortName: string;
+  city: string;
+  headcount: number;
+  practiceSystem: string;
+  isFictional: boolean;
+}
+
+export interface KnowledgeEntry {
+  id: string;
+  prompt: string;
+  /** Shown as a suggested question in the empty state. */
+  suggested: boolean;
+  answer: AnswerBlock;
+  /** Passages the retrieval step looked at, including rejected ones. */
+  retrieved: { sourceId: string; passageId: string; used: boolean; note: string }[];
+}
+
+/**
+ * Intake counters, derived in the database rather than stored, so a count can
+ * never drift from the rows it describes.
+ */
+export interface RequestOverview {
+  requestId: string;
+  total: number;
+  provided: number;
+  missing: number;
+  uncertain: number;
+  readiness: "no_intake" | "incomplete" | "complete";
+}
+
+export interface TaxhubSnapshot {
+  workspace: Workspace;
+  users: User[];
+  currentUserId: string;
+  clients: Client[];
+  sources: Source[];
+  requests: RequestRecord[];
+  drafts: Draft[];
+  knowledge: KnowledgeEntry[];
+  activity: ActivityEvent[];
+  overview: Record<string, RequestOverview>;
+}
