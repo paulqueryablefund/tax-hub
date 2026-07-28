@@ -205,7 +205,11 @@ export async function buildSnapshot(db: Db): Promise<TaxhubSnapshot> {
     body: r.body,
     category: r.category as RequestRecord["category"],
     categoryConfidence: r.category_confidence as RequestRecord["categoryConfidence"],
-    status: r.lifecycle_status as RequestRecord["status"],
+    // Derived in the request_overview view from live intake and draft state.
+    // The stored lifecycle_status is only consulted there for the two
+    // human-set states (closed, awaiting_client) that no query can reconstruct.
+    status: (overviewRows.find((o) => o.request_id === r.id)?.status ??
+      r.lifecycle_status) as RequestRecord["status"],
     assignedUserId: r.assigned_user_id,
     dueDate: r.due_date ?? undefined,
     summary: r.narrative_summary,
