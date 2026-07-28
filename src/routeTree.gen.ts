@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InboxIndexRouteImport } from './routes/inbox.index'
+import { Route as IntakeRequestIdRouteImport } from './routes/intake.$requestId'
+import { Route as InboxRequestIdRouteImport } from './routes/inbox.$requestId'
 
 const InboxRoute = InboxRouteImport.update({
   id: '/inbox',
@@ -28,33 +30,61 @@ const InboxIndexRoute = InboxIndexRouteImport.update({
   path: '/',
   getParentRoute: () => InboxRoute,
 } as any)
+const IntakeRequestIdRoute = IntakeRequestIdRouteImport.update({
+  id: '/intake/$requestId',
+  path: '/intake/$requestId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InboxRequestIdRoute = InboxRequestIdRouteImport.update({
+  id: '/$requestId',
+  path: '/$requestId',
+  getParentRoute: () => InboxRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/inbox': typeof InboxRouteWithChildren
+  '/inbox/$requestId': typeof InboxRequestIdRoute
+  '/intake/$requestId': typeof IntakeRequestIdRoute
   '/inbox/': typeof InboxIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/inbox/$requestId': typeof InboxRequestIdRoute
+  '/intake/$requestId': typeof IntakeRequestIdRoute
   '/inbox': typeof InboxIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/inbox': typeof InboxRouteWithChildren
+  '/inbox/$requestId': typeof InboxRequestIdRoute
+  '/intake/$requestId': typeof IntakeRequestIdRoute
   '/inbox/': typeof InboxIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/inbox' | '/inbox/'
+  fullPaths:
+    | '/'
+    | '/inbox'
+    | '/inbox/$requestId'
+    | '/intake/$requestId'
+    | '/inbox/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/inbox'
-  id: '__root__' | '/' | '/inbox' | '/inbox/'
+  to: '/' | '/inbox/$requestId' | '/intake/$requestId' | '/inbox'
+  id:
+    | '__root__'
+    | '/'
+    | '/inbox'
+    | '/inbox/$requestId'
+    | '/intake/$requestId'
+    | '/inbox/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   InboxRoute: typeof InboxRouteWithChildren
+  IntakeRequestIdRoute: typeof IntakeRequestIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -80,14 +110,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InboxIndexRouteImport
       parentRoute: typeof InboxRoute
     }
+    '/intake/$requestId': {
+      id: '/intake/$requestId'
+      path: '/intake/$requestId'
+      fullPath: '/intake/$requestId'
+      preLoaderRoute: typeof IntakeRequestIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inbox/$requestId': {
+      id: '/inbox/$requestId'
+      path: '/$requestId'
+      fullPath: '/inbox/$requestId'
+      preLoaderRoute: typeof InboxRequestIdRouteImport
+      parentRoute: typeof InboxRoute
+    }
   }
 }
 
 interface InboxRouteChildren {
+  InboxRequestIdRoute: typeof InboxRequestIdRoute
   InboxIndexRoute: typeof InboxIndexRoute
 }
 
 const InboxRouteChildren: InboxRouteChildren = {
+  InboxRequestIdRoute: InboxRequestIdRoute,
   InboxIndexRoute: InboxIndexRoute,
 }
 
@@ -96,6 +142,7 @@ const InboxRouteWithChildren = InboxRoute._addFileChildren(InboxRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   InboxRoute: InboxRouteWithChildren,
+  IntakeRequestIdRoute: IntakeRequestIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
