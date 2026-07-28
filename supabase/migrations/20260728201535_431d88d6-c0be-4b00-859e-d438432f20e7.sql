@@ -1,0 +1,1 @@
+ALTER FUNCTION public.search_passages(text, text, int) SECURITY INVOKER;

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient, useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  askKnowledge,
   escalateRequest,
   getSnapshot,
   logEvent,
@@ -9,7 +10,7 @@ import {
   saveIntakeField,
   setDraftStatus,
 } from "./api/taxhub.functions";
-import type { KnowledgeEntry, RequestOverview, TaxhubSnapshot } from "./types";
+import type { KnowledgeResult, RequestOverview, TaxhubSnapshot } from "./types";
 
 export const taxhubQueryKey = ["taxhub", "snapshot"] as const;
 
@@ -33,23 +34,14 @@ export function useTaxhub() {
 }
 
 /**
- * Deterministic lexical match against the workspace's recorded questions. This
- * is where real retrieval would plug in; it never invents an answer.
+ * Live retrieval over the 70-passage corpus. The whole grounded answer is
+ * assembled on the server; the browser only shows what came back.
  */
-function matchKnowledge(entries: KnowledgeEntry[], query: string): KnowledgeEntry | null {
-  const q = query.toLowerCase();
-  if (!q.trim()) return null;
-  const scored = entries
-    .map((entry) => {
-      const terms = entry.prompt
-        .toLowerCase()
-        .split(/\W+/)
-        .filter((t) => t.length > 3);
-      return { entry, hits: terms.filter((t) => q.includes(t)).length };
-    })
-    .sort((a, b) => b.hits - a.hits);
-  if (!scored.length || scored[0].hits < 2) return null;
-  return scored[0].entry;
+export function useAskKnowledge() {
+  const ask = useServerFn(askKnowledge);
+  return useMutation<KnowledgeResult, Error, { question: string; userId: string }>({
+    mutationFn: (data) => ask({ data }),
+  });
 }
 
 function withLookups(snapshot: TaxhubSnapshot) {
@@ -62,7 +54,6 @@ function withLookups(snapshot: TaxhubSnapshot) {
     requestById: (id: string) => snapshot.requests.find((r) => r.id === id),
     draftById: (id: string) => snapshot.drafts.find((d) => d.id === id),
     overviewFor: (requestId: string) => snapshot.overview[requestId] ?? emptyOverview(requestId),
-    findKnowledgeEntry: (query: string) => matchKnowledge(snapshot.knowledge, query),
   };
 }
 

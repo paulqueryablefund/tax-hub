@@ -231,3 +231,62 @@ export interface TaxhubSnapshot {
   activity: ActivityEvent[];
   overview: Record<string, RequestOverview>;
 }
+/* ------------------------------------------------------------------ *
+ * Live retrieval over the corpus
+ * ------------------------------------------------------------------ */
+
+/** One passage as the retrieval function returned it, kept or rejected. */
+export interface RetrievedPassage {
+  sourceId: string;
+  passageId: string;
+  locator: string;
+  text: string;
+  sourceTitle: string;
+  url?: string;
+  /** Rank inside each arm. 0 means the arm did not return this passage. */
+  ranks: { fts: number; trgm: number; anchor: number };
+  /** Reciprocal-rank-fusion score across the three arms. */
+  score: number;
+  used: boolean;
+  /** Set only when the passage was retrieved and then filtered out. */
+  exclusionReason?: string;
+  /** P1..Pn — the label the model saw. Only kept passages carry one. */
+  label?: string;
+}
+
+/** A single English term and the German terms it was expanded into. */
+export interface ExpandedTerm {
+  termEn: string;
+  termsDe: string[];
+  tier: 1 | 2;
+}
+
+export interface QueryExpansion {
+  detectedLanguage: "en" | "de";
+  originalQuery: string;
+  /** What was actually handed to the retrieval function. */
+  searchQuery: string;
+  terms: ExpandedTerm[];
+  tier2Used: boolean;
+  tier2FromCache: boolean;
+  note: string;
+}
+
+export interface KnowledgeRefusal {
+  reason: string;
+  /** Named so the user can see exactly what was searched and came back empty. */
+  searched: string;
+}
+
+export interface KnowledgeResult {
+  lane: "live_retrieval";
+  question: string;
+  expansion: QueryExpansion;
+  retrieved: RetrievedPassage[];
+  answer: AnswerBlock | null;
+  refusal?: KnowledgeRefusal;
+  /** The pinned model id that produced the sentences, recorded on every answer. */
+  modelId: string;
+  /** Sentences the server threw away because they cited a passage never supplied. */
+  droppedSentences: number;
+}
