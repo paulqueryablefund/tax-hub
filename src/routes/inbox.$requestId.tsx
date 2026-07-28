@@ -13,8 +13,7 @@ import {
   formatDate,
   formatDateTime,
 } from "@/features/taxhub/components/primitives";
-import { clientById, currentUserId, userById } from "@/features/taxhub/data/people";
-import { escalateRequest, useTaxhubState } from "@/features/taxhub/store";
+import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 
 export const Route = createFileRoute("/inbox/$requestId")({
   head: () => ({
@@ -52,7 +51,8 @@ function RequestNotFound() {
 
 function RequestDetail() {
   const { requestId } = Route.useParams();
-  const { requests, drafts } = useTaxhubState();
+  const { requests, drafts, clientById, userById, currentUser } = useTaxhub();
+  const { escalateRequest } = useTaxhubActions();
   const request = requests.find((r) => r.id === requestId);
   if (!request) throw notFound();
 
@@ -60,7 +60,7 @@ function RequestDetail() {
   const owner = userById(request.assignedUserId);
   const draft = drafts.find((d) => d.id === request.draftId);
   const missing = request.intake.filter((f) => f.status !== "provided");
-  const actor = userById(currentUserId)!;
+  const actor = currentUser;
 
   return (
     <div className="space-y-6">
@@ -221,13 +221,15 @@ function RequestDetail() {
                 <Button
                   variant="outline"
                   className="mt-3 w-full"
+                  disabled={escalateRequest.isPending}
                   onClick={() =>
-                    escalateRequest(
-                      request.id,
-                      "u-ehlers",
-                      "Firm handbook 4.3 requires review by a Steuerberater when the gross list price may exceed the reduced-base ceiling.",
-                      actor.name,
-                    )
+                    escalateRequest.mutate({
+                      requestId: request.id,
+                      toUserId: "u-ehlers",
+                      reason:
+                        "Firm handbook 4.3 requires review by a Steuerberater when the gross list price may exceed the reduced-base ceiling.",
+                      actorName: actor.name,
+                    })
                   }
                 >
                   <ArrowUpRight aria-hidden className="size-4" />
