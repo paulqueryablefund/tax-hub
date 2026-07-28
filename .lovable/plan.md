@@ -1,72 +1,124 @@
-## Goal
+## Scope
 
-Two deliverables in one build:
+Move `src/features/taxhub/data/*` and the in-memory `store.ts` onto the Lovable Cloud database, keeping `types.ts` as the contract. Lovable Cloud is not enabled on this project yet — that is step 0.
 
-1. **The brief** — a deep, source-cited research and product/design document following your 33-section structure, written to `/mnt/documents` as a downloadable Markdown file (plus a rendered in-app version).
-2. **The prototype** — a live, clickable MVP of the recommended vertical, English UI, demo-mode with realistic clearly-labelled fictional seed data, good enough to carry a five-minute founder demo.
+## 1. Tables
 
-Vertical: evaluate all three honestly on a weighted scorecard, but build TaxHub unless the evidence is overwhelming against it. Early grounding already looks favourable (105,953 chamber members as of 1 Jan 2026 per BStBK Berufsstatistik 2025; recurring documented pain around missing receipts/DMS filing and client-side document chasing).
-
-## Research phase (parallel subagents, all cited)
-
-Four parallel research tracks, each returning facts with working URLs and an explicit facts / inference / assumption split:
-
-- **Track A — market sizing and fragmentation**: firm counts and size bands for Steuerberatung, Handwerk, Umzug/Spedition; labour shortage data; Destatis / BStBK / ZDH / BGL sources.
-- **Track B — incumbents and gaps**: DATEV (incl. DUO, DMS), ADDISON, Agenda, Simba, Lexware; Handwerk tools; TMS/moving tools. Documented complaints, published capabilities, integration/export surfaces.
-- **Track C — regulation and trust**: GDPR, StBerG/Berufsrecht confidentiality (§203 StGB), DSGVO Auftragsverarbeitung, EU AI Act obligations relevant to professional advice, DATEV data residency claims.
-- **Track D — reference products and visual conventions**: JUPUS, Demi and comparable grounded-knowledge products; German B2B/professional software visual language.
-
-Anything unverifiable gets labelled Assumption / Hypothesis to validate / Product recommendation / Design inference. No invented quotes, stats, or competitor features.
-
-## Recommended wedge (to be confirmed by research)
-
-**Mandanten-Rückfrage loop**: an inbound client request arrives (email/call transcript/portal), the system classifies it, runs a guided intake that names exactly the missing documents and facts, checks the firm's own grounded knowledge base, produces a structured case summary with citations, drafts the first useful output (a client reply requesting precisely the missing items, or an answer to a recurring question), and a professional approves before anything leaves the firm. Every step logged.
-
-This augments DATEV rather than replacing it: export/handoff is a stub-but-honest "copy to DATEV" action, clearly labelled as a mocked integration.
-
-## Prototype scope
-
-Routes (English UI, desktop-first, responsive):
+All ids stay `text` primary keys with their existing prefixes. All tables in `public`, snake_case, each `CREATE TABLE` followed by `GRANT` (SELECT to `anon` where public reads are needed, full CRUD to `authenticated`, `ALL` to `service_role`), then RLS enable + policies. Demo phase: read-open, write via authenticated only.
 
 ```text
-/                     Overview — today's requests, open drafts, time saved
-/inbox                Request inbox — triage list, classification, status
-/inbox/$requestId     Request detail — timeline, intake, sources, draft
-/intake/$requestId    Guided intake — missing-information detection
-/knowledge            Grounded assistant — ask, answer with citations
-/sources              Source library — ingest, freshness, permissions
-/sources/$sourceId    Source detail + citation viewer
-/drafts/$draftId      Draft review — diff, approve, send confirmation
-/activity             Audit trail
-/settings             Workspace, team, permissions, integrations (placeholder)
+workspaces(id, firm_name, short_name, city, headcount, practice_system, is_fictional)
+users(id, workspace_id→workspaces, name, initials, role, can_approve)
+clients(id, workspace_id, mandant_number, name, legal_form, city,
+        contact_name, contact_email, responsible_user_id→users,
+        fiscal_year_end, services text[])
+
+sources(id, workspace_id, title, short_title, kind, publisher, url,
+        is_public, is_fictional, effective_from date, last_reviewed date,
+        health, visibility, note)
+source_passages(id, source_id→sources ON DELETE CASCADE, locator, text, position int,
+                PRIMARY KEY (id) , UNIQUE (source_id, id))
+source_supersessions(source_id→sources, superseded_by_id→sources,
+                     PRIMARY KEY (source_id, superseded_by_id),
+                     CHECK (source_id <> superseded_by_id))
+
+requests(id, workspace_id, reference, client_id→clients, channel, received_at timestamptz,
+         subject, body, category, category_confidence, lifecycle_status,
+         assigned_user_id→users, due_date date, narrative_summary,
+         escalation_reason, escalation_to_user_id→users, escalation_at)
+intake_fields(id, request_id→requests ON DELETE CASCADE, position int, label, help,
+              type, options text[], required bool, value text,
+              status text CHECK (status IN ('provided','missing','uncertain')))
+answers(id, request_id→requests, position, question, answer, confidence,
+        caveats text[], conflict_note)
+drafts(id, request_id→requests, kind, title, recipient, subject,
+       is_external bool, confidence, open_questions text[], status, generated_at)
+draft_sections(id, draft_id→drafts, position, heading, body)
+activity_events(id, at timestamptz default now(), actor, actor_name, action, detail,
+                request_id→requests, decision)
+activity_event_sources(event_id→activity_events, source_id→sources, PRIMARY KEY(...))
+
+knowledge_questions(...) + knowledge_answers(...)  -- same shape as answers, for /knowledge
 ```
 
-Every screen ships loading, empty, error and success states. No dead buttons: anything not real is visibly marked as a demo or mocked integration.
+**Citations as real foreign keys.** One polymorphic-free approach: a separate citation table per host, each with a composite FK into the passage:
 
-**AI behaviour is simulated deterministically from seed data** for the MVP — no model calls needed for the demo, so it never fails live. The brief specifies exactly where real retrieval would plug in. If you want genuine retrieval later, that's a follow-on using Lovable Cloud + the AI gateway.
+```text
+citations(id uuid, source_id, passage_id, reason,
+          FOREIGN KEY (source_id, passage_id) REFERENCES source_passages(source_id, id))
+intake_field_citations(intake_field_id→intake_fields, citation_id→citations)  -- "requiredBy", max 1
+answer_citations(answer_id→answers, citation_id, position, is_conflict bool)
+draft_section_citations(draft_section_id→draft_sections, citation_id, position)
+```
 
-## Trust surfaces (the point of the product)
+The composite FK `(source_id, passage_id)` is what makes "never resolve a citation silently to nothing" structural: a passage cannot be deleted while cited, and a citation cannot name a passage that belongs to a different source. `is_conflict` on `answer_citations` carries `AnswerBlock.conflicts.citations` without a second table.
 
-Citations inline and expandable to the source passage; explicit confidence states; a real "I can't answer from your sources" path; conflicting-source and stale-source flags; human approval gate before any external communication; full activity log with who/what/when.
+**Supersession** is its own edge table, not an array column, so it can be traversed and so a superseding source cannot be a dangling id.
 
-## Design direction
+**Intake status** stays an explicit stored enum-checked column, not derived from `value IS NOT NULL`. `uncertain` ("recorded but not evidenced") carries a value yet is not provided — collapsing it into a null check would erase a distinction the product principles require.
 
-Three named visual territories developed and one recommended — calm, precise, document-dense, high-contrast, no gradients, no glowing orbs, no neon. Semantic token set in `src/styles.css` (oklch) including AI-specific tokens: `source-verified`, `ai-uncertain`, `human-review-required`, `status-*`. Typography chosen to survive long German compound nouns, dates, and citation strings, even though UI copy is English.
+## 2. What becomes derived
 
-## Delivery order
+| Field today | Verdict | Where |
+|---|---|---|
+| `RequestRecord.summary` | **Split.** The narrative half ("client acquired an electric vehicle…") is authored content and stays stored as `narrative_summary`. The counting half ("Seven intake items required; four are still outstanding") is derived and must be removed from the stored string. | Counters from the view; the sentence is composed in a client selector so wording lives with the UI. |
+| intake counters (`total`, `provided`, `missing`, `uncertain`) — recomputed ad hoc in `index.tsx:91`, `inbox.$requestId.tsx:62`, `intake.$requestId.tsx:43-44` | **Derived, single definition.** | SQL view `request_overview` (`count(*) FILTER (WHERE status = …)`), so list pages get counts without shipping every intake row. |
+| `RequestRecord.status` | **Partly derived — do not fully derive.** `ready_for_review` and `approved` are functions of intake completeness and draft state; `new`, `intake`, `awaiting_client` and `closed` are human/workflow facts no query can infer (nothing in the schema records that a client was emailed and we are waiting). Store `lifecycle_status`, and expose a derived `derived_readiness` alongside it in the view. | View computes readiness; a server function advances `lifecycle_status` on approval, exactly as `setDraftStatus` does now. |
+| dashboard counts (`open`, `review`, sources needing attention) | Derived | Client selectors over the fetched lists — small data, no round trip. |
 
-1. Research tracks run in parallel; findings consolidated with a source list.
-2. Scorecard, beachhead decision, strongest counterargument, falsification criteria.
-3. Design system + tokens land in `src/styles.css` before screens.
-4. Seed data and object model (`Workspace, User, Client, Request, Intake, Source, Citation, Answer, Draft, Approval, ActivityEvent`) — names kept identical across nav, screens, and copy.
-5. Screens built against the specs.
-6. Brief written to `/mnt/documents/taxhub-product-brief.md`, ending with the Claude Code master prompt and machine-readable token block.
-7. Accessibility pass (WCAG 2.2 AA), responsive pass, quality-audit checklist.
+Rule applied: derive anything a query can prove; store anything only a human knows.
 
-## Technical notes
+## 3. Read path
 
-TanStack Start with file-based routes, Tailwind v4 tokens, shadcn/ui primitives, feature folders under `src/features/`. No backend in this pass — seed data lives in typed modules, which keeps the demo instant and deterministic. Trade-off stated plainly: persistence, real ingestion, and real retrieval need Lovable Cloud, and the brief scopes that as phase two.
+`useSyncExternalStore` and `store.ts` are deleted. The existing `QueryClient` in `src/router.tsx` is reused as-is and passed through router context — **no new state library, no Zustand/Redux, no second QueryClient.**
 
-## What this deliberately excludes
+Server functions (`src/features/taxhub/api/*.functions.ts`, client-safe path, `createServerFn`):
 
-Real telephony, real email ingestion, real DATEV connectivity, multi-tenant auth, billing, analytics dashboards with meaningless charts.
+| Function | Query key |
+|---|---|
+| `listRequests` (joins `request_overview`, client, assignee) | `['requests','list']` |
+| `getRequest(id)` (intake + citations + answers + draft ref) | `['requests','detail',id]` |
+| `listSources` / `getSource(id)` | `['sources','list']` / `['sources','detail',id]` |
+| `listDrafts` / `getDraft(id)` | `['drafts','list']` / `['drafts','detail',id]` |
+| `listActivity` | `['activity']` |
+| `getKnowledge` | `['knowledge']` |
+| `getWorkspace` (firm, users, current user) | `['workspace']` |
+
+Mutations replacing the store's writers: `updateIntakeField`, `updateDraftSection`, `setDraftStatus`, `escalateRequest`, `resetDemo`. Each writes the row **and** inserts the `activity_events` row in the same call, then the client invalidates the affected detail key + `['activity']` (+ `['requests','list']` when status or counters move).
+
+Routes changed: `index.tsx`, `inbox.index.tsx`, `inbox.$requestId.tsx`, `intake.$requestId.tsx`, `drafts.index.tsx`, `drafts.$draftId.tsx`, `activity.tsx`, `sources.index.tsx`, `sources.$sourceId.tsx`, `knowledge.tsx`, `settings.tsx` (firm/team from `workspace`), plus `app-shell.tsx` (current user) and `primitives.tsx` (citation resolution moves from module lookup to resolved data). `inbox.tsx`, `drafts.tsx`, `sources.tsx` are `<Outlet />` shells and do not change.
+
+## 4. SSR and hydration
+
+Every route uses the loader/suspense pair, not `useEffect`:
+
+```tsx
+loader: ({ context }) => context.queryClient.ensureQueryData(requestsQuery()),
+component: () => useSuspenseQuery(requestsQuery())
+```
+
+The loader runs on the server, the dehydrated cache hydrates on the client under the identical key, and the first client render reads the same rows — so a hard refresh renders real data and cannot mismatch. Requirements: query keys must be byte-identical between loader and component (shared `queryOptions` factories, no inline objects); no `new Date()`, `Date.now()`, `Math.random()` or locale-dependent formatting during render — `formatDateTime` must be given an explicit fixed timezone/locale or all timestamps must be pre-formatted server-side, otherwise the server (UTC) and a Berlin browser disagree; `relative time` strings, if any, move to `useEffect`. Reads stay public (no `requireSupabaseAuth` in a public loader — prerender has no bearer token); if auth is added later, those routes move under `_authenticated/`.
+
+## 5. Order, with pins between steps
+
+1. Enable Lovable Cloud.
+2. One migration: all tables + GRANTs + RLS + policies + views, **and literal INSERT statements for the full seed corpus** (sources, passages, people, requests, intake, answers, drafts, activity). Seeding must be in the migration, not a script or a page-load call. *Pin: `types.ts` is frozen from here — schema and types must agree.*
+3. Build the `request_overview` view and confirm its counts equal today's client-side counts for every seeded request. *Pin: no route touched yet; the app still runs on `store.ts`.*
+4. Add read server functions + `queryOptions` factories. *Pin: store still in place — diff server output against seed modules field by field before deleting anything.*
+5. Convert read-only routes (`sources.*`, `activity`, `knowledge`, `index`) to loader + `useSuspenseQuery`.
+6. Convert interactive routes (`intake.$requestId`, `drafts.$draftId`, `inbox.*`) with their mutations.
+7. Delete `store.ts` and `data/*.ts` **only after** step 6 verifies. *Pin: keep the seed modules on disk until the last route is converted so a bad read is instantly comparable.*
+8. Hydration pass: hard-refresh every route, console clean, timezone forced to Europe/Berlin in the check.
+9. Security scan; confirm no `service_role` client reaches a component.
+
+## 6. Risks and things I think are wrong in the framing
+
+- **"Status must become derived" is the riskiest item and I disagree with it as stated.** Four of the six `RequestStatus` values encode human workflow state that no query can reconstruct. Deriving status wholesale would silently collapse `awaiting_client` into `intake` and lose the inbox filter's meaning. Store it; derive only readiness.
+- **`summary` is not purely derived either.** The narrative clause is authored prose with legal specificity; regenerating it from counters would be inventing content, which the product principles forbid. Only the counting sentence is safe to compute.
+- **Citations are the fragile part.** Today a bad `passageId` resolves to nothing and the UI shows a broken-citation state. Under composite FKs, bad data is rejected at insert time instead — which is better, but the seed INSERTs must be ordered (sources → passages → citations) or the migration fails midway. Keep the broken-citation UI regardless; a passage can still be superseded.
+- **`data/requests.ts` seed values are hand-authored and internally inconsistent** — the `r-1042` summary says "four are still outstanding" while the array holds four `missing` plus one `uncertain`. Converting counters to SQL will surface such mismatches as visible text changes; that is a correction, not a regression, but expect the demo copy to shift.
+- **Hydration mismatch is most likely to come from date formatting, not data.** `formatDateTime` and the `+02:00` offsets in seed data are the thing to pin, before any query wiring.
+- **Timestamps**: `receivedAt` is stored with an explicit `+02:00` offset today. `timestamptz` normalises to UTC; every display must render in Europe/Berlin explicitly or times will appear two hours early.
+- **Ordering**: seed arrays carry implicit order that Postgres will not preserve. Every child table needs `position`, and every read must `ORDER BY` it, or intake steps and draft sections will shuffle between loads.
+- **`resetDemo`** currently restores module constants instantly. On a database it becomes a destructive server-side re-seed — it needs a confirmation and must not be reachable by an anonymous visitor.
+- **Scope**: this touches every route and both shared components. It is a large single migration; steps 5 and 6 are the natural place to stop and verify.

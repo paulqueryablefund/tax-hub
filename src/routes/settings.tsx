@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { KeyValue, PageHeader, Panel } from "@/features/taxhub/components/primitives";
-import { users, workspace } from "@/features/taxhub/data/people";
-import { resetDemo } from "@/features/taxhub/store";
+import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -24,6 +23,9 @@ export const Route = createFileRoute("/settings")({
 });
 
 function Settings() {
+  const { users, workspace } = useTaxhub();
+  const { resetDemonstration } = useTaxhubActions();
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -99,9 +101,19 @@ function Settings() {
           Reset the workspace to its starting state before a demonstration. Approvals, edits and
           activity entries you created are discarded.
         </p>
-        <Button variant="outline" className="mt-3" onClick={() => resetDemo()}>
-          Reset demonstration data
+        <Button
+          variant="outline"
+          className="mt-3"
+          disabled={resetDemonstration.isPending}
+          onClick={() => resetDemonstration.mutate()}
+        >
+          {resetDemonstration.isPending ? "Resetting…" : "Reset demonstration data"}
         </Button>
+        {resetDemonstration.isSuccess ? (
+          <p role="status" className="mt-2 text-xs text-status-success">
+            Workspace restored to its starting state.
+          </p>
+        ) : null}
       </Panel>
     </div>
   );

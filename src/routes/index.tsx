@@ -8,9 +8,7 @@ import {
   StatusBadge,
   formatDateTime,
 } from "@/features/taxhub/components/primitives";
-import { clientById, userById, workspace } from "@/features/taxhub/data/people";
-import { sources } from "@/features/taxhub/data/sources";
-import { useTaxhubState } from "@/features/taxhub/store";
+import { useTaxhub } from "@/features/taxhub/use-taxhub";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -33,7 +31,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Overview() {
-  const { requests } = useTaxhubState();
+  const { requests, sources, workspace, clientById, userById, overviewFor } = useTaxhub();
   const open = requests.filter((r) => r.status !== "closed" && r.status !== "approved");
   const review = requests.filter((r) => r.status === "ready_for_review");
   const attention = sources.filter((s) => s.health === "review_due" || s.health === "conflicting");
@@ -88,7 +86,7 @@ function Overview() {
           <ul className="divide-y divide-border-subtle">
             {review.map((request) => {
               const client = clientById(request.clientId);
-              const missing = request.intake.filter((f) => f.status !== "provided").length;
+              const intake = overviewFor(request.id);
               return (
                 <li key={request.id} className="py-3 first:pt-0 last:pb-0">
                   <Link
@@ -105,7 +103,7 @@ function Overview() {
                         {formatDateTime(request.receivedAt)}
                       </p>
                       <p className="mt-1 text-xs text-text-secondary">
-                        {missing} of {request.intake.length} intake items still open
+                        {intake.total - intake.provided} of {intake.total} intake items still open
                       </p>
                     </div>
                     <StatusBadge status={request.status} />

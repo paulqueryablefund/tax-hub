@@ -15,8 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { clientById, userById } from "@/features/taxhub/data/people";
-import { useTaxhubState } from "@/features/taxhub/store";
+import { useTaxhub } from "@/features/taxhub/use-taxhub";
 import type { RequestStatus } from "@/features/taxhub/types";
 
 const categoryLabels: Record<string, string> = {
@@ -57,7 +56,7 @@ export const Route = createFileRoute("/inbox/")({
 });
 
 function RequestInbox() {
-  const { requests } = useTaxhubState();
+  const { requests, clientById, userById, overviewFor } = useTaxhub();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<RequestStatus | "all">("all");
 

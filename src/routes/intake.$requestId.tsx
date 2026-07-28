@@ -10,8 +10,7 @@ import {
   formatDate,
 } from "@/features/taxhub/components/primitives";
 import { CitationChip } from "@/features/taxhub/components/primitives";
-import { clientById, currentUserId, userById } from "@/features/taxhub/data/people";
-import { updateIntakeField, useTaxhubState } from "@/features/taxhub/store";
+import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 
 export const Route = createFileRoute("/intake/$requestId")({
   head: () => ({
@@ -34,14 +33,14 @@ export const Route = createFileRoute("/intake/$requestId")({
 
 function GuidedIntake() {
   const { requestId } = Route.useParams();
-  const { requests } = useTaxhubState();
+  const { requests, clientById, currentUser, overviewFor } = useTaxhub();
+  const { updateIntakeField } = useTaxhubActions();
   const request = requests.find((r) => r.id === requestId);
   if (!request) throw notFound();
 
   const client = clientById(request.clientId)!;
-  const actor = userById(currentUserId)!;
-  const provided = request.intake.filter((f) => f.status === "provided").length;
-  const total = request.intake.length;
+  const actor = currentUser;
+  const { provided, total } = overviewFor(request.id);
 
   return (
     <div className="space-y-6">
@@ -113,7 +112,14 @@ function GuidedIntake() {
                 <IntakeItem
                   index={i + 1}
                   field={field}
-                  onSave={(value) => updateIntakeField(request.id, field.id, value, actor.name)}
+                  onSave={(value) =>
+                    updateIntakeField.mutate({
+                      requestId: request.id,
+                      fieldId: field.id,
+                      value,
+                      actorName: actor.name,
+                    })
+                  }
                 />
               </li>
             ))}

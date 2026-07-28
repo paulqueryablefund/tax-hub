@@ -9,7 +9,7 @@ import {
   SourceHealthBadge,
   formatDate,
 } from "@/features/taxhub/components/primitives";
-import { sourceById, sources } from "@/features/taxhub/data/sources";
+import { useTaxhub } from "@/features/taxhub/use-taxhub";
 
 const searchSchema = z.object({
   passage: z.string().optional(),
@@ -38,6 +38,7 @@ export const Route = createFileRoute("/sources/$sourceId")({
 function SourceDetail() {
   const { sourceId } = Route.useParams();
   const { passage: focusedPassage } = Route.useSearch();
+  const { sources, sourceById } = useTaxhub();
   const source = sourceById(sourceId);
   if (!source) throw notFound();
 

@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "../features/taxhub/components/app-shell";
+import { taxhubQueryOptions } from "../features/taxhub/use-taxhub";
 
 function NotFoundComponent() {
   return (
@@ -74,6 +75,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  loader: ({ context }) => context.queryClient.ensureQueryData(taxhubQueryOptions),
   head: () => ({
     meta: [
       { charSet: "utf-8" },

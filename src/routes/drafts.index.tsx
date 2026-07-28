@@ -6,7 +6,7 @@ import {
   PageHeader,
   formatDateTime,
 } from "@/features/taxhub/components/primitives";
-import { useTaxhubState } from "@/features/taxhub/store";
+import { useTaxhub } from "@/features/taxhub/use-taxhub";
 
 export const Route = createFileRoute("/drafts/")({
   head: () => ({
@@ -35,7 +35,7 @@ const statusLabels = {
 };
 
 function DraftList() {
-  const { drafts } = useTaxhubState();
+  const { drafts } = useTaxhub();
 
   return (
     <div className="space-y-6">

@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { sourceById } from "../data/sources";
+import { useTaxhub } from "../use-taxhub";
 import type {
   Citation,
   Confidence,
@@ -203,8 +203,9 @@ export function FictionalBadge({ className }: { className?: string }) {
 
 /** Inline, numbered citation marker that links to the passage in the source. */
 export function CitationChip({ citation, index }: { citation: Citation; index: number }) {
+  const { sourceById } = useTaxhub();
   const source = sourceById(citation.sourceId);
-  if (!source) return null;
+  if (!source) return <BrokenCitation id={citation.sourceId} />;
   return (
     <Link
       to="/sources/$sourceId"
@@ -226,6 +227,7 @@ export function CitationList({
   citations: Citation[];
   heading?: string;
 }) {
+  const { sourceById } = useTaxhub();
   if (!citations.length) {
     return (
       <p className="text-sm text-text-secondary">
@@ -239,8 +241,14 @@ export function CitationList({
       <ol className="space-y-2">
         {citations.map((citation, i) => {
           const source = sourceById(citation.sourceId);
-          const passage = source?.passages.find((p) => p.id === citation.passageId);
-          if (!source) return null;
+          if (!source) {
+            return (
+              <li key={`${citation.sourceId}-${citation.passageId}-${i}`}>
+                <BrokenCitation id={citation.sourceId} />
+              </li>
+            );
+          }
+          const passage = source.passages.find((p) => p.id === citation.passageId);
           return (
             <li
               key={`${citation.sourceId}-${citation.passageId}-${i}`}
@@ -256,7 +264,12 @@ export function CitationList({
                   <span className="type-label mb-1 block">{passage.locator}</span>
                   {passage.text}
                 </blockquote>
-              ) : null}
+              ) : (
+                <p className="mt-2 text-xs font-medium text-status-danger">
+                  This citation points to passage {citation.passageId}, which is no longer in the
+                  source. Do not rely on this statement until it is re-checked.
+                </p>
+              )}
               <p className="mt-2 text-xs text-text-secondary">
                 <span className="font-medium">Why this passage: </span>
                 {citation.reason}
@@ -280,6 +293,16 @@ export function CaveatList({ caveats }: { caveats: string[] }) {
         ))}
       </ul>
     </div>
+  );
+}
+
+/** A citation whose source is missing must never disappear quietly. */
+function BrokenCitation({ id }: { id: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-sm border border-status-danger/40 bg-status-danger-bg px-1.5 py-0.5 text-xs font-medium text-status-danger">
+      <AlertTriangle aria-hidden className="size-3" />
+      Broken citation — source {id} is not in the library
+    </span>
   );
 }
 
@@ -321,6 +344,7 @@ export function KeyValue({ items }: { items: { label: string; value: ReactNode }
 
 export function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("en-GB", {
+    timeZone: "Europe/Berlin",
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -331,6 +355,7 @@ export function formatDateTime(iso: string) {
 
 export function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", {
+    timeZone: "Europe/Berlin",
     day: "2-digit",
     month: "short",
     year: "numeric",

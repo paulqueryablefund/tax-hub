@@ -22,8 +22,7 @@ import {
   Panel,
   formatDateTime,
 } from "@/features/taxhub/components/primitives";
-import { currentUserId, userById, users } from "@/features/taxhub/data/people";
-import { setDraftStatus, updateDraftSection, useTaxhubState } from "@/features/taxhub/store";
+import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 
 export const Route = createFileRoute("/drafts/$draftId")({
   head: () => ({
@@ -46,15 +45,23 @@ export const Route = createFileRoute("/drafts/$draftId")({
 
 function DraftReview() {
   const { draftId } = Route.useParams();
-  const { drafts, requests } = useTaxhubState();
+  const { drafts, requests, users, currentUser } = useTaxhub();
+  const { updateDraftStatus, updateDraftSection } = useTaxhubActions();
   const draft = drafts.find((d) => d.id === draftId);
   if (!draft) throw notFound();
 
   const request = requests.find((r) => r.id === draft.requestId);
-  const actor = userById(currentUserId)!;
+  const actor = currentUser;
   const approver = users.find((u) => u.canApprove)!;
   const [editing, setEditing] = useState<number | null>(null);
+  const [editedBody, setEditedBody] = useState("");
   const [copied, setCopied] = useState(false);
+
+  const saveSection = (index: number, body: string) => {
+    if (body !== draft.sections[index]?.body) {
+      updateDraftSection.mutate({ draftId: draft.id, index, body });
+    }
+  };
 
   const allCitations = draft.sections.flatMap((s) => s.citations ?? []);
 
@@ -112,7 +119,15 @@ function DraftReview() {
                     {draft.status === "draft" ? (
                       <button
                         type="button"
-                        onClick={() => setEditing(editing === i ? null : i)}
+                        onClick={() => {
+                          if (editing === i) {
+                            saveSection(i, editedBody);
+                            setEditing(null);
+                          } else {
+                            setEditedBody(section.body);
+                            setEditing(i);
+                          }
+                        }}
                         className="inline-flex items-center gap-1 text-xs text-text-secondary hover:text-text-primary"
                       >
                         <Pencil aria-hidden className="size-3" />
@@ -124,8 +139,9 @@ function DraftReview() {
                     <Textarea
                       aria-label={`Edit ${section.heading}`}
                       className="mt-1 min-h-32 font-sans text-sm"
-                      value={section.body}
-                      onChange={(e) => updateDraftSection(draft.id, i, e.target.value)}
+                      value={editedBody}
+                      onChange={(e) => setEditedBody(e.target.value)}
+                      onBlur={() => saveSection(i, editedBody)}
                     />
                   ) : (
                     <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">
@@ -182,12 +198,13 @@ function DraftReview() {
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() =>
-                          setDraftStatus(
-                            draft.id,
-                            "approved",
-                            actor.name,
-                            `Approved and sent "${draft.subject}" to ${draft.recipient}.`,
-                          )
+                          updateDraftStatus.mutate({
+                            draftId: draft.id,
+                            status: "approved",
+                            actorUserId: actor.id,
+                            actorName: actor.name,
+                            note: `Approved and sent "${draft.subject}" to ${draft.recipient}.`,
+                          })
                         }
                       >
                         Approve and send
@@ -199,13 +216,15 @@ function DraftReview() {
                 <Button
                   variant="outline"
                   className="w-full"
+                  disabled={updateDraftStatus.isPending}
                   onClick={() =>
-                    setDraftStatus(
-                      draft.id,
-                      "rejected",
-                      actor.name,
-                      `Rejected "${draft.subject}". The case remains open.`,
-                    )
+                    updateDraftStatus.mutate({
+                      draftId: draft.id,
+                      status: "rejected",
+                      actorUserId: actor.id,
+                      actorName: actor.name,
+                      note: `Rejected "${draft.subject}". The case remains open.`,
+                    })
                   }
                 >
                   <X aria-hidden className="size-4" />
