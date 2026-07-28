@@ -15,13 +15,13 @@ import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 export const Route = createFileRoute("/intake/$requestId")({
   head: () => ({
     meta: [
-      { title: "Guided intake — TaxHub" },
+      { title: "Guided intake — Werk Flow" },
       {
         name: "description",
         content:
           "The minimum set of facts and documents this case needs, each one tied to the rule that requires it.",
       },
-      { property: "og:title", content: "Guided intake — TaxHub" },
+      { property: "og:title", content: "Guided intake — Werk Flow" },
       {
         property: "og:description",
         content: "The minimum facts this case needs, each tied to the rule that requires it.",

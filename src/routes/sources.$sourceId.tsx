@@ -21,13 +21,13 @@ export const Route = createFileRoute("/sources/$sourceId")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Source detail — TaxHub" },
+      { title: "Source detail — Werk Flow" },
       {
         name: "description",
         content:
           "Read the exact passage an answer relied on, with its publisher, effective date and review state.",
       },
-      { property: "og:title", content: "Source detail — TaxHub" },
+      { property: "og:title", content: "Source detail — Werk Flow" },
       {
         property: "og:description",
         content: "The exact passage behind an answer, with publisher and review state.",

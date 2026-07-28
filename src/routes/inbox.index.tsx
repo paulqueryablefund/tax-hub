@@ -39,13 +39,13 @@ const channelLabels: Record<string, string> = {
 export const Route = createFileRoute("/inbox/")({
   head: () => ({
     meta: [
-      { title: "Requests — TaxHub" },
+      { title: "Requests — Werk Flow" },
       {
         name: "description",
         content:
           "Every client request from email, phone and the client portal, classified and triaged in one list.",
       },
-      { property: "og:title", content: "Requests — TaxHub" },
+      { property: "og:title", content: "Requests — Werk Flow" },
       {
         property: "og:description",
         content: "Client requests from every channel, classified and triaged in one list.",

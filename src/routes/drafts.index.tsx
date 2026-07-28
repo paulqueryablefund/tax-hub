@@ -11,13 +11,13 @@ import { useTaxhub } from "@/features/taxhub/use-taxhub";
 export const Route = createFileRoute("/drafts/")({
   head: () => ({
     meta: [
-      { title: "Drafts — TaxHub" },
+      { title: "Drafts — Werk Flow" },
       {
         name: "description",
         content:
           "Prepared replies waiting for a professional's approval. Nothing reaches a client without a signature.",
       },
-      { property: "og:title", content: "Drafts — TaxHub" },
+      { property: "og:title", content: "Drafts — Werk Flow" },
       {
         property: "og:description",
         content: "Prepared replies waiting for approval. Nothing reaches a client unsigned.",
