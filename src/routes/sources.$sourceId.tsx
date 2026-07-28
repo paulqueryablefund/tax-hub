@@ -110,7 +110,12 @@ function SourceDetail() {
       <Panel title="Document facts">
         <KeyValue
           items={[
-            { label: "Effective from", value: formatDate(source.effectiveFrom) },
+            {
+              label: "Effective from",
+              value: source.effectiveFrom
+                ? formatDate(source.effectiveFrom)
+                : "Not stated by the source",
+            },
             { label: "Last reviewed", value: formatDate(source.lastReviewed) },
             { label: "Visibility", value: source.visibility.replace(/_/g, " ") },
             { label: "Passages indexed", value: String(source.passages.length) },

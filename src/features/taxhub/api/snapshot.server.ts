@@ -12,6 +12,7 @@ import type {
   RequestOverview,
   RequestRecord,
   Source,
+  SourceRelation,
   TaxhubSnapshot,
   User,
   Workspace,
@@ -154,8 +155,20 @@ export async function buildSnapshot(db: Db): Promise<TaxhubSnapshot> {
     visibility: s.visibility as Source["visibility"],
     note: s.note ?? undefined,
     supersededByIds: supersessionRows
-      .filter((x) => x.source_id === s.id)
+      .filter(
+        (x): x is typeof x & { superseded_by_id: string } =>
+          x.source_id === s.id && x.relation === "superseded_by" && x.superseded_by_id !== null,
+      )
       .map((x) => x.superseded_by_id),
+    relations: supersessionRows
+      .filter((x) => x.source_id === s.id)
+      .map((x) => ({
+        relation: x.relation as SourceRelation["relation"],
+        targetSourceId: x.superseded_by_id ?? undefined,
+        targetLabel: x.target_label ?? undefined,
+        scope: x.scope ?? undefined,
+        effectiveNote: x.effective_note ?? undefined,
+      })),
     passages: passageRows
       .filter((p) => p.source_id === s.id)
       .map((p) => ({ id: p.passage_id, locator: p.locator, text: p.text })),

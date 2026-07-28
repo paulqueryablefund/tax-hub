@@ -839,16 +839,31 @@ export type Database = {
       }
       source_supersessions: {
         Row: {
+          effective_note: string | null
+          id: string
+          relation: string
+          scope: string | null
           source_id: string
-          superseded_by_id: string
+          superseded_by_id: string | null
+          target_label: string | null
         }
         Insert: {
+          effective_note?: string | null
+          id?: string
+          relation?: string
+          scope?: string | null
           source_id: string
-          superseded_by_id: string
+          superseded_by_id?: string | null
+          target_label?: string | null
         }
         Update: {
+          effective_note?: string | null
+          id?: string
+          relation?: string
+          scope?: string | null
           source_id?: string
-          superseded_by_id?: string
+          superseded_by_id?: string | null
+          target_label?: string | null
         }
         Relationships: [
           {
@@ -869,7 +884,7 @@ export type Database = {
       }
       sources: {
         Row: {
-          effective_from: string
+          effective_from: string | null
           health: string
           id: string
           is_fictional: boolean
@@ -886,7 +901,7 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
-          effective_from: string
+          effective_from?: string | null
           health: string
           id: string
           is_fictional: boolean
@@ -903,7 +918,7 @@ export type Database = {
           workspace_id: string
         }
         Update: {
-          effective_from?: string
+          effective_from?: string | null
           health?: string
           id?: string
           is_fictional?: boolean
@@ -969,6 +984,7 @@ export type Database = {
           intake_total: number | null
           intake_uncertain: number | null
           request_id: string | null
+          status: string | null
         }
         Relationships: []
       }
