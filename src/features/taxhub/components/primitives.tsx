@@ -364,22 +364,66 @@ export function KeyValue({ items }: { items: { label: string; value: ReactNode }
   );
 }
 
-export function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString("en-GB", {
-    timeZone: "Europe/Berlin",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+/*
+ * Dates are formatted by hand rather than through toLocaleString. The server
+ * renders in UTC and a German browser renders in Europe/Berlin, so any
+ * locale- or runtime-zone-dependent call produces two different strings and
+ * React silently rewrites the text after hydration. Everything below is
+ * deterministic: one fixed format, one fixed zone, identical on both sides.
+ * The month is written out ("28 Jul 2026") because 03/04 means two different
+ * days to a German and a British reader.
+ */
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/** Last Sunday of `month` (0-based) at `hourUtc`, in UTC. */
+function lastSundayUtc(year: number, month: number, hourUtc: number) {
+  const d = new Date(Date.UTC(year, month + 1, 0, hourUtc, 0, 0, 0));
+  d.setUTCDate(d.getUTCDate() - d.getUTCDay());
+  return d;
 }
 
+/** Europe/Berlin is UTC+1, or UTC+2 between the last Sundays of March and October. */
+function berlinOffsetMinutes(date: Date) {
+  const year = date.getUTCFullYear();
+  const summerStart = lastSundayUtc(year, 2, 1);
+  const summerEnd = lastSundayUtc(year, 9, 1);
+  return date >= summerStart && date < summerEnd ? 120 : 60;
+}
+
+function berlinParts(iso: string) {
+  const utc = new Date(iso);
+  const shifted = new Date(utc.getTime() + berlinOffsetMinutes(utc) * 60_000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return {
+    day: String(shifted.getUTCDate()),
+    month: MONTHS[shifted.getUTCMonth()],
+    year: String(shifted.getUTCFullYear()),
+    hour: pad(shifted.getUTCHours()),
+    minute: pad(shifted.getUTCMinutes()),
+  };
+}
+
+/** "28 Jul 2026, 20:50" — always Europe/Berlin, server and browser alike. */
+export function formatDateTime(iso: string) {
+  const p = berlinParts(iso);
+  return `${p.day} ${p.month} ${p.year}, ${p.hour}:${p.minute}`;
+}
+
+/** "28 Jul 2026" — always Europe/Berlin, server and browser alike. */
 export function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-GB", {
-    timeZone: "Europe/Berlin",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  const p = berlinParts(iso);
+  return `${p.day} ${p.month} ${p.year}`;
 }
