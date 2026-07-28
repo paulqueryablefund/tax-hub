@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
-import type { TaxhubSnapshot } from "../types";
+import type { KnowledgeResult, TaxhubSnapshot } from "../types";
 import { buildSnapshot } from "./snapshot.server";
 
 function publicClient() {
@@ -209,3 +209,26 @@ export const resetDemo = createServerFn({ method: "POST" }).handler(async () => 
   if (error) throw new Error(error.message);
   return { ok: true };
 });
+
+/**
+ * Live retrieval over the corpus. The caller sends a question and who is
+ * asking; the visibility tier is resolved here, never trusted from the client.
+ */
+export const askKnowledge = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) =>
+    z.object({ question: z.string().min(1).max(500), userId: z.string() }).parse(data),
+  )
+  .handler(async ({ data }): Promise<KnowledgeResult> => {
+    const { admin } = await import("./writes.server");
+    const { resolveVisibility } = await import("./visibility.server");
+    const { askKnowledge: run } = await import("./retrieval.server");
+
+    const db = await admin();
+    const { data: user } = await db
+      .from("app_users")
+      .select("role")
+      .eq("id", data.userId)
+      .maybeSingle();
+
+    return run(data.question, resolveVisibility(user?.role));
+  });
