@@ -91,6 +91,7 @@ export function useTaxhubActions() {
     mutationFn: (data: {
       draftId: string;
       status: "draft" | "approved" | "sent" | "rejected";
+      actorUserId: string;
       actorName: string;
       note: string;
     }) => setStatus({ data }),

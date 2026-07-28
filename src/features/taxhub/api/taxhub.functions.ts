@@ -83,6 +83,7 @@ export const setDraftStatus = createServerFn({ method: "POST" })
       .object({
         draftId: z.string(),
         status: z.enum(["draft", "approved", "sent", "rejected"]),
+        actorUserId: z.string(),
         actorName: z.string(),
         note: z.string(),
       })
@@ -94,11 +95,27 @@ export const setDraftStatus = createServerFn({ method: "POST" })
 
     const { data: draft, error: readError } = await db
       .from("drafts")
-      .select("request_id")
+      .select("request_id, is_external")
       .eq("id", data.draftId)
       .maybeSingle();
     if (readError) throw new Error(readError.message);
     if (!draft) throw new Error("Draft not found");
+
+    // Approval authority is decided here, not in the UI. A draft that leaves
+    // the firm can only be approved or rejected by a user with signing rights.
+    if (draft.is_external && (data.status === "approved" || data.status === "rejected")) {
+      const { data: actor, error: actorError } = await db
+        .from("users")
+        .select("can_approve, name")
+        .eq("id", data.actorUserId)
+        .maybeSingle();
+      if (actorError) throw new Error(actorError.message);
+      if (!actor?.can_approve) {
+        throw new Error(
+          "This user may not approve or reject outgoing client correspondence.",
+        );
+      }
+    }
 
     const { error } = await db
       .from("drafts")
