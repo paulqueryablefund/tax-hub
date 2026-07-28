@@ -321,6 +321,7 @@ export function KeyValue({ items }: { items: { label: string; value: ReactNode }
 
 export function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("en-GB", {
+    timeZone: "Europe/Berlin",
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -331,6 +332,7 @@ export function formatDateTime(iso: string) {
 
 export function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", {
+    timeZone: "Europe/Berlin",
     day: "2-digit",
     month: "short",
     year: "numeric",

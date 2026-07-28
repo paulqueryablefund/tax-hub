@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bot, Cog, User } from "lucide-react";
 import { PageHeader, formatDateTime } from "@/features/taxhub/components/primitives";
-import { sourceById } from "@/features/taxhub/data/sources";
-import { useTaxhubState } from "@/features/taxhub/store";
+import { useTaxhub } from "@/features/taxhub/use-taxhub";
 
 export const Route = createFileRoute("/activity")({
   head: () => ({
@@ -26,7 +25,7 @@ export const Route = createFileRoute("/activity")({
 const actorIcon = { assistant: Bot, user: User, system: Cog };
 
 function Activity() {
-  const { activity } = useTaxhubState();
+  const { activity, sourceById } = useTaxhub();
 
   return (
     <div className="space-y-6">
