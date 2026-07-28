@@ -20,13 +20,13 @@ import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 export const Route = createFileRoute("/inbox/$requestId")({
   head: () => ({
     meta: [
-      { title: "Request detail — TaxHub" },
+      { title: "Request detail — Werk Flow" },
       {
         name: "description",
         content:
           "The original client message, what the assistant established, which facts are still missing, and the draft awaiting approval.",
       },
-      { property: "og:title", content: "Request detail — TaxHub" },
+      { property: "og:title", content: "Request detail — Werk Flow" },
       {
         property: "og:description",
         content: "Original message, established facts, missing information and the pending draft.",

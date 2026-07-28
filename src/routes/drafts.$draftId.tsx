@@ -30,13 +30,13 @@ import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 export const Route = createFileRoute("/drafts/$draftId")({
   head: () => ({
     meta: [
-      { title: "Draft review — TaxHub" },
+      { title: "Draft review — Werk Flow" },
       {
         name: "description",
         content:
           "Read the prepared reply, see what the assistant is unsure about, edit it, and approve before it is sent.",
       },
-      { property: "og:title", content: "Draft review — TaxHub" },
+      { property: "og:title", content: "Draft review — Werk Flow" },
       {
         property: "og:description",
         content: "Read the prepared reply, see the open questions, edit it, and approve.",

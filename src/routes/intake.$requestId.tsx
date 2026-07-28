@@ -15,13 +15,13 @@ import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 export const Route = createFileRoute("/intake/$requestId")({
   head: () => ({
     meta: [
-      { title: "Guided intake — TaxHub" },
+      { title: "Guided intake — Werk Flow" },
       {
         name: "description",
         content:
           "The minimum set of facts and documents this case needs, each one tied to the rule that requires it.",
       },
-      { property: "og:title", content: "Guided intake — TaxHub" },
+      { property: "og:title", content: "Guided intake — Werk Flow" },
       {
         property: "og:description",
         content: "The minimum facts this case needs, each tied to the rule that requires it.",
@@ -129,7 +129,8 @@ function GuidedIntake() {
 
           <Panel title="What happens next">
             <p className="text-sm text-text-secondary">
-              Recording an item updates the case and the pending draft. Nothing is sent to{" "}
+              Recording an item updates the case and the approval gate on the pending draft. Nothing
+              is sent to{" "}
               {client.contactName} until a person with signing authority approves the reply.
               {request.dueDate ? ` Target date: ${formatDate(request.dueDate)}.` : ""}
             </p>

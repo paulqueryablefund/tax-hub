@@ -1,0 +1,2 @@
+update public.draft_sections_seed set body = replace(body, 'once four points are clarified', 'once the following points are clarified') where body like '%once four points are clarified%';
+update public.draft_sections set body = replace(body, 'once four points are clarified', 'once the following points are clarified') where body like '%once four points are clarified%';

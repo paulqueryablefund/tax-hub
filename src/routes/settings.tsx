@@ -13,13 +13,13 @@ import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — TaxHub" },
+      { title: "Settings — Werk Flow" },
       {
         name: "description",
         content:
           "Workspace details, who may approve outgoing correspondence, and the state of practice-system integrations.",
       },
-      { property: "og:title", content: "Settings — TaxHub" },
+      { property: "og:title", content: "Settings — Werk Flow" },
       {
         property: "og:description",
         content: "Workspace details, approval rights and integration status.",

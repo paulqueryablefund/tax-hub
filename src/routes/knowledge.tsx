@@ -18,13 +18,13 @@ import { useAskKnowledge, useTaxhub, useTaxhubActions } from "@/features/taxhub/
 export const Route = createFileRoute("/knowledge")({
   head: () => ({
     meta: [
-      { title: "Knowledge — TaxHub" },
+      { title: "Knowledge — Werk Flow" },
       {
         name: "description",
         content:
           "Ask a question and get an answer built only from the firm's own sources, with the passage behind every statement.",
       },
-      { property: "og:title", content: "Knowledge — TaxHub" },
+      { property: "og:title", content: "Knowledge — Werk Flow" },
       {
         property: "og:description",
         content: "Answers built only from the firm's own sources, with the passage behind each statement.",
@@ -131,7 +131,7 @@ function Knowledge() {
           setPhase(res.answer ? "answered" : "nothing");
           logActivity.mutate({
             actor: "assistant",
-            actorName: "TaxHub assistant",
+            actorName: "Werk Flow assistant",
             action: res.answer ? "Knowledge question answered" : "Knowledge question unanswered",
             detail: res.answer
               ? `"${q}" — answered from ${res.answer.citations.length} passage(s) with confidence: ${res.answer.confidence}. Model ${res.modelId}.`
