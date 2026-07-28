@@ -12,7 +12,7 @@ import {
   Panel,
   SourceHealthBadge,
 } from "@/features/taxhub/components/primitives";
-import type { KnowledgeResult } from "@/features/taxhub/types";
+import type { KnowledgeEntry, KnowledgeResult, RetrievedPassage } from "@/features/taxhub/types";
 import { useAskKnowledge, useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 
 export const Route = createFileRoute("/knowledge")({
@@ -36,6 +36,27 @@ export const Route = createFileRoute("/knowledge")({
 
 type Phase = "idle" | "searching" | "answered" | "nothing";
 
+/** Both lanes are first class. The guided lane is a demonstration path, never a fallback. */
+const LANE_LABEL: Record<KnowledgeResult["lane"], string> = {
+  guided_example: "Guided example",
+  live_retrieval: "Live retrieval over your sources",
+};
+
+function LaneBadge({ lane }: { lane: KnowledgeResult["lane"] }) {
+  return (
+    <span
+      data-tour="knowledge.lane"
+      className={
+        lane === "guided_example"
+          ? "rounded-sm bg-ai-surface px-1.5 py-0.5 text-xs font-medium text-ai-uncertain"
+          : "rounded-sm bg-source-verified-bg px-1.5 py-0.5 text-xs font-medium text-source-verified"
+      }
+    >
+      {LANE_LABEL[lane]}
+    </span>
+  );
+}
+
 function Knowledge() {
   const { knowledge, currentUser, sourceById } = useTaxhub();
   const { logActivity } = useTaxhubActions();
@@ -46,6 +67,56 @@ function Knowledge() {
   const [failure, setFailure] = useState<string | null>(null);
   const [reported, setReported] = useState(false);
   const actor = currentUser;
+
+  /**
+   * A suggested chip serves its curated answer straight from the database.
+   * It is the demonstration path and must not depend on a live model call.
+   */
+  function askGuided(entry: KnowledgeEntry) {
+    setQuery(entry.prompt);
+    setReported(false);
+    setFailure(null);
+    const retrieved: RetrievedPassage[] = entry.retrieved.map((r, index) => {
+      const source = sourceById(r.sourceId);
+      const passage = source?.passages.find((p) => p.id === r.passageId);
+      return {
+        sourceId: r.sourceId,
+        passageId: r.passageId,
+        locator: passage?.locator ?? r.passageId,
+        text: passage?.text ?? "",
+        sourceTitle: source?.title ?? r.sourceId,
+        url: source?.url,
+        ranks: { fts: 0, trgm: 0, anchor: 0 },
+        score: 0,
+        used: r.used,
+        exclusionReason: r.used ? undefined : r.note,
+        label: r.used ? `P${index + 1}` : undefined,
+      };
+    });
+    const guided: KnowledgeResult = {
+      lane: "guided_example",
+      question: entry.prompt,
+      retrieved,
+      answer: entry.answer.answer ? entry.answer : null,
+      refusal: entry.answer.answer
+        ? undefined
+        : {
+            reason: entry.answer.caveats[0] ?? "The library does not cover this question.",
+            searched: "Curated example stored in the library — no live search was run.",
+          },
+      modelId: "curated — no model call",
+      droppedSentences: 0,
+    };
+    setResult(guided);
+    setPhase(guided.answer ? "answered" : "nothing");
+    logActivity.mutate({
+      actor: "user",
+      actorName: actor.name,
+      action: "Guided example opened",
+      detail: `"${entry.prompt}" — curated example served from the library; no live retrieval and no model call.`,
+      sourceIds: [...new Set(entry.answer.citations.map((c) => c.sourceId))],
+    });
+  }
 
   function ask(q: string) {
     setQuery(q);
@@ -64,7 +135,7 @@ function Knowledge() {
             action: res.answer ? "Knowledge question answered" : "Knowledge question unanswered",
             detail: res.answer
               ? `"${q}" — answered from ${res.answer.citations.length} passage(s) with confidence: ${res.answer.confidence}. Model ${res.modelId}.`
-              : `"${q}" — ${res.refusal?.reason ?? "no answer was produced."} Searched: ${res.refusal?.searched ?? res.expansion.searchQuery}`,
+              : `"${q}" — ${res.refusal?.reason ?? "no answer was produced."} Searched: ${res.refusal?.searched ?? res.expansion?.searchQuery ?? q}`,
             sourceIds: res.answer
               ? [...new Set(res.answer.citations.map((c) => c.sourceId))]
               : undefined,
@@ -116,20 +187,24 @@ function Knowledge() {
         </form>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <span className="type-label self-center">Try</span>
+          <span className="type-label self-center">Guided examples</span>
           {knowledge
             .filter((e) => e.suggested)
             .map((e) => (
               <button
                 key={e.id}
                 type="button"
-                onClick={() => ask(e.prompt)}
+                onClick={() => askGuided(e)}
                 className="rounded-sm border border-border-default bg-subtle px-2 py-1 text-xs text-text-secondary hover:border-border-strong hover:text-text-primary"
               >
                 {e.prompt}
               </button>
             ))}
         </div>
+        <p className="mt-2 text-xs text-text-secondary">
+          A guided example serves a curated answer stored in the library. Anything you type yourself
+          runs live retrieval over your sources.
+        </p>
         <p className="mt-3 text-xs text-text-secondary">
           You are asking as {actor.name} ({actor.role}). Passages above your visibility tier are not
           retrieved.
@@ -200,6 +275,11 @@ function Knowledge() {
 
       {phase === "nothing" ? (
         <Panel tourId="knowledge.refusal" title="No answer">
+          {result ? (
+            <p className="mb-2">
+              <LaneBadge lane={result.lane} />
+            </p>
+          ) : null}
           <p className="text-sm">
             {failure ??
               result?.refusal?.reason ??
@@ -226,6 +306,9 @@ function Knowledge() {
           >
             <span data-tour="knowledge.confidence" className="inline-block">
               <ConfidenceBadge confidence={result.answer.confidence} withExplanation />
+            </span>
+            <span className="ml-2 inline-block align-middle">
+              <LaneBadge lane={result.lane} />
             </span>
             <p className="mt-3 text-sm leading-relaxed">{result.answer.answer}</p>
 
@@ -255,7 +338,7 @@ function Knowledge() {
             <div className="mt-4 flex flex-wrap gap-2 border-t border-border-subtle pt-3">
               <Button variant="outline" size="sm" onClick={() => ask(result.question)}>
                 <RotateCcw aria-hidden className="size-4" />
-                Ask again
+                {result.lane === "guided_example" ? "Run this live instead" : "Ask again"}
               </Button>
               <Button
                 variant="outline"
@@ -285,7 +368,11 @@ function Knowledge() {
 
           <Panel
             title="Why this answer"
-            description="Every passage retrieval looked at, in fused rank order, including the ones it rejected."
+            description={
+              result.lane === "guided_example"
+                ? "The passages recorded against this curated example, including the ones it rejected."
+                : "Every passage retrieval looked at, in fused rank order, including the ones it rejected."
+            }
           >
             <ul className="space-y-2">
               {result.retrieved.map((r) => {
@@ -308,10 +395,12 @@ function Knowledge() {
                       {source?.shortTitle ?? r.sourceTitle} — <span className="font-mono text-xs">{r.locator}</span>
                     </span>
                     {source ? <SourceHealthBadge health={source.health} /> : null}
-                    <span className="font-mono text-xs text-text-secondary">
-                      rrf {r.score.toFixed(4)} · fts {r.ranks.fts || "—"} · trgm {r.ranks.trgm || "—"} ·
-                      anchor {r.ranks.anchor || "—"}
-                    </span>
+                    {result.lane === "live_retrieval" ? (
+                      <span className="font-mono text-xs text-text-secondary">
+                        rrf {r.score.toFixed(4)} · fts {r.raw?.fts.toFixed(3) ?? "—"} · trgm{" "}
+                        {r.raw?.trgm.toFixed(3) ?? "—"} · anchor {r.raw?.anchor ?? "—"}
+                      </span>
+                    ) : null}
                     <span className="w-full text-xs text-text-secondary">
                       {r.exclusionReason ?? r.text.slice(0, 220)}
                       {!r.exclusionReason && r.text.length > 220 ? "…" : ""}
@@ -324,10 +413,15 @@ function Knowledge() {
               {excluded.length
                 ? `${excluded.length} passage(s) were retrieved and then filtered out. They are shown so a filter can never hide a source silently.`
                 : "No passage was filtered out for this question."}
-              {" "}Answer sentences produced by {result.modelId}
-              {result.droppedSentences
+              {" "}
+              {result.lane === "guided_example"
+                ? "This is a curated example stored in the library; no model produced it."
+                : `Answer sentences produced by ${result.modelId}`}
+              {result.lane === "live_retrieval" && result.droppedSentences
                 ? `; ${result.droppedSentences} sentence(s) were discarded for citing a passage that was never supplied.`
-                : "; none were discarded."}
+                : result.lane === "live_retrieval"
+                  ? "; none were discarded."
+                  : ""}
             </p>
           </Panel>
         </div>
