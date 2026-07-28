@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Check, Copy, Pencil, X } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -18,10 +19,12 @@ import {
   CaveatList,
   CitationList,
   ConfidenceBadge,
+  EmptyState,
   PageHeader,
   Panel,
   formatDateTime,
 } from "@/features/taxhub/components/primitives";
+import { useAnnounce } from "@/features/taxhub/components/announcer";
 import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 
 export const Route = createFileRoute("/drafts/$draftId")({
@@ -43,10 +46,25 @@ export const Route = createFileRoute("/drafts/$draftId")({
   component: DraftReview,
 });
 
+function DraftNotFound() {
+  return (
+    <EmptyState
+      title="Draft not found"
+      description="This draft does not exist in the demonstration workspace. It may have been discarded by a demonstration reset."
+      action={
+        <Button asChild variant="outline">
+          <Link to="/drafts">Back to drafts</Link>
+        </Button>
+      }
+    />
+  );
+}
+
 function DraftReview() {
   const { draftId } = Route.useParams();
   const { drafts, requests, users, currentUser } = useTaxhub();
   const { updateDraftStatus, updateDraftSection } = useTaxhubActions();
+  const announce = useAnnounce();
   const draft = drafts.find((d) => d.id === draftId);
   if (!draft) throw notFound();
 
@@ -56,6 +74,42 @@ function DraftReview() {
   const [editing, setEditing] = useState<number | null>(null);
   const [editedBody, setEditedBody] = useState("");
   const [copied, setCopied] = useState(false);
+
+  /**
+   * Two independent gates, both enforced on the server. Role decides who may
+   * sign; evidence decides whether anything may be signed at all.
+   */
+  const unevidenced = (request?.intake ?? []).filter((f) => f.status === "uncertain");
+  const roleBlocked = !actor.canApprove;
+  const evidenceBlocked = draft.isExternal && unevidenced.length > 0;
+  const approvalBlocked = roleBlocked || evidenceBlocked;
+  const blockReason = roleBlocked
+    ? `Approving is not available to ${actor.name} (${actor.role}). Only a user with signing authority — for example ${approver.name} (${approver.role}) — may release this to the client. The server refuses the approval, not just this button.`
+    : evidenceBlocked
+      ? `Approving is blocked because ${unevidenced
+          .map((f) => `"${f.label}"`)
+          .join(", ")} is recorded but not evidenced, and this reply depends on it. The server refuses the approval until the evidence is on file, whoever is signed in.`
+      : "";
+
+  const decide = (status: "approved" | "rejected", note: string) =>
+    updateDraftStatus.mutate(
+      { draftId: draft.id, status, note },
+      {
+        onSuccess: () => {
+          const message =
+            status === "approved"
+              ? `Approved and sent to ${draft.recipient}. The decision is in the activity trail.`
+              : "Draft rejected. Nothing was sent and the case stays open.";
+          toast.success(message);
+          announce(message);
+        },
+        onError: (error) => {
+          const message = `Not ${status === "approved" ? "approved" : "rejected"}: ${error.message}`;
+          toast.error(message);
+          announce(message);
+        },
+      },
+    );
 
   const saveSection = (index: number, body: string) => {
     if (body !== draft.sections[index]?.body) {
