@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 import { useTaxhub } from "../use-taxhub";
 import { TourProvider, useTour } from "../tour/tour-provider";
 import { WORKFLOW_ORDER } from "../tour/tour-content";
+import { Announcer } from "./announcer";
+import { RoleSwitcher } from "./role-switcher";
 
 const nav = [
   { to: "/", label: "Overview", icon: LayoutDashboard, exact: true, tour: "nav.overview" },
@@ -28,9 +30,11 @@ const nav = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <TourProvider>
-      <AppChrome>{children}</AppChrome>
-    </TourProvider>
+    <Announcer>
+      <TourProvider>
+        <AppChrome>{children}</AppChrome>
+      </TourProvider>
+    </Announcer>
   );
 }
 
@@ -114,6 +118,10 @@ function AppChrome({ children }: { children: ReactNode }) {
             Demonstration workspace. All firm, client and document data is fictional. Practice-system
             integrations are mocked.
           </p>
+
+          <div className="border-t border-border-subtle pt-3">
+            <RoleSwitcher compact />
+          </div>
         </aside>
 
         <main id="main" className="min-w-0 flex-1">

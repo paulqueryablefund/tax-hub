@@ -1,7 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ExternalLink } from "lucide-react";
 import { z } from "zod";
+import { Button } from "@/components/ui/button";
 import {
+  EmptyState,
   FictionalBadge,
   KeyValue,
   PageHeader,
@@ -33,7 +35,22 @@ export const Route = createFileRoute("/sources/$sourceId")({
     ],
   }),
   component: SourceDetail,
+  notFoundComponent: SourceNotFound,
 });
+
+function SourceNotFound() {
+  return (
+    <EmptyState
+      title="Source not found"
+      description="This document is not in the library. A citation that points here is broken and is shown as broken wherever it appears."
+      action={
+        <Button asChild variant="outline">
+          <Link to="/sources">Back to the library</Link>
+        </Button>
+      }
+    />
+  );
+}
 
 function SourceDetail() {
   const { sourceId } = Route.useParams();
@@ -155,7 +172,9 @@ function SourceDetail() {
                   {p.locator}
                   {focused ? " · cited passage" : ""}
                 </p>
-                <p className="text-sm leading-relaxed">{p.text}</p>
+                <p lang={source.isFictional ? undefined : "de"} className="text-sm leading-relaxed">
+                  {p.text}
+                </p>
               </li>
             );
           })}
