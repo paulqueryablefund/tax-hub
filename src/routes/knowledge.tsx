@@ -12,11 +12,8 @@ import {
   Panel,
   SourceHealthBadge,
 } from "@/features/taxhub/components/primitives";
-import { findKnowledgeEntry, knowledgeEntries } from "@/features/taxhub/data/knowledge";
-import type { KnowledgeEntry } from "@/features/taxhub/data/knowledge";
-import { currentUserId, userById } from "@/features/taxhub/data/people";
-import { sourceById } from "@/features/taxhub/data/sources";
-import { logEvent } from "@/features/taxhub/store";
+import type { KnowledgeEntry } from "@/features/taxhub/types";
+import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 
 export const Route = createFileRoute("/knowledge")({
   head: () => ({
@@ -40,11 +37,13 @@ export const Route = createFileRoute("/knowledge")({
 type Phase = "idle" | "searching" | "answered" | "nothing";
 
 function Knowledge() {
+  const { knowledge, currentUser, sourceById, findKnowledgeEntry } = useTaxhub();
+  const { logActivity } = useTaxhubActions();
   const [query, setQuery] = useState("");
   const [phase, setPhase] = useState<Phase>("idle");
   const [entry, setEntry] = useState<KnowledgeEntry | null>(null);
   const [reported, setReported] = useState(false);
-  const actor = userById(currentUserId)!;
+  const actor = currentUser;
 
   function ask(q: string) {
     setQuery(q);
@@ -54,7 +53,7 @@ function Knowledge() {
       const match = findKnowledgeEntry(q);
       setEntry(match);
       setPhase(match ? "answered" : "nothing");
-      logEvent({
+      logActivity.mutate({
         actor: "assistant",
         actorName: "TaxHub assistant",
         action: match ? "Knowledge question answered" : "Knowledge question unanswered",
@@ -100,7 +99,7 @@ function Knowledge() {
 
         <div className="mt-3 flex flex-wrap gap-2">
           <span className="type-label self-center">Try</span>
-          {knowledgeEntries
+          {knowledge
             .filter((e) => e.suggested)
             .map((e) => (
               <button
@@ -189,13 +188,12 @@ function Knowledge() {
                 disabled={reported}
                 onClick={() => {
                   setReported(true);
-                  logEvent({
+                  logActivity.mutate({
                     actor: "user",
                     actorName: actor.name,
                     action: "Answer reported as incorrect",
                     detail: `Flagged the answer to "${entry.prompt}" for review by a Steuerberater.`,
                     sourceIds: entry.answer.citations.map((c) => c.sourceId),
-                    decision: "corrected",
                   });
                 }}
               >
