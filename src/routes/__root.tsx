@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { Toaster } from "@/components/ui/sonner";
 import { AppShell } from "../features/taxhub/components/app-shell";
 import { taxhubQueryOptions } from "../features/taxhub/use-taxhub";
 
@@ -37,9 +38,12 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
   const router = useRouter();
   useEffect(() => {
+    // Logged in an effect, not during render: rendering runs twice under
+    // StrictMode and again on every re-render, which filled the console on
+    // pages that were working perfectly well.
+    console.error(error);
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
@@ -142,6 +146,7 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </AppShell>
+      <Toaster position="bottom-right" />
     </QueryClientProvider>
   );
 }

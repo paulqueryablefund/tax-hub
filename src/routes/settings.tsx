@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { KeyValue, PageHeader, Panel } from "@/features/taxhub/components/primitives";
+import { RoleSwitcher } from "@/features/taxhub/components/role-switcher";
+import { useAnnounce } from "@/features/taxhub/components/announcer";
 import { MICROCOPY } from "@/features/taxhub/tour/tour-content";
 import { useTour } from "@/features/taxhub/tour/tour-provider";
 import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
@@ -27,8 +30,9 @@ export const Route = createFileRoute("/settings")({
 });
 
 function Settings() {
-  const { users, workspace } = useTaxhub();
+  const { users, workspace, currentUser } = useTaxhub();
   const { resetDemonstration } = useTaxhubActions();
+  const announce = useAnnounce();
   const tour = useTour();
 
   return (
@@ -50,6 +54,19 @@ function Settings() {
         />
         <p className="mt-4 text-xs text-text-tertiary">
           Fictional firm used for this demonstration.
+        </p>
+      </Panel>
+
+      <Panel
+        title="Signed-in user (demonstration control)"
+        description="Switch between a preparer and an approver to see both halves of the approval gate."
+      >
+        <RoleSwitcher />
+        <p className="mt-3 text-sm text-text-secondary">
+          {currentUser.name} may{" "}
+          {currentUser.canApprove
+            ? "approve and send outgoing correspondence — subject to the evidence gate, which blocks a reply that rests on an unevidenced figure."
+            : "prepare and edit, but not approve. An approval attempt is refused by the server."}
         </p>
       </Panel>
 
@@ -116,7 +133,19 @@ function Settings() {
           variant="outline"
           className="mt-3"
           disabled={resetDemonstration.isPending}
-          onClick={() => resetDemonstration.mutate()}
+          onClick={() =>
+            resetDemonstration.mutate(undefined, {
+              onSuccess: () => {
+                const message = "Demonstration data reset. The workspace is back to its starting state.";
+                toast.success(message);
+                announce(message);
+              },
+              onError: (error) => {
+                toast.error(`Reset failed: ${error.message}`);
+                announce(`Reset failed: ${error.message}`);
+              },
+            })
+          }
         >
           {resetDemonstration.isPending ? "Resetting…" : "Reset demonstration data"}
         </Button>

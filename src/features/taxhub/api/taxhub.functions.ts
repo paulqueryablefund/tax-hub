@@ -83,8 +83,6 @@ export const setDraftStatus = createServerFn({ method: "POST" })
       .object({
         draftId: z.string(),
         status: z.enum(["draft", "approved", "sent", "rejected"]),
-        actorUserId: z.string(),
-        actorName: z.string(),
         note: z.string(),
       })
       .parse(data),
@@ -101,18 +99,40 @@ export const setDraftStatus = createServerFn({ method: "POST" })
     if (readError) throw new Error(readError.message);
     if (!draft) throw new Error("Draft not found");
 
-    // Approval authority is decided here, not in the UI. A draft that leaves
-    // the firm can only be approved or rejected by a user with signing rights.
+    // Who is acting is read from the stored session, never from the request
+    // body: a caller cannot claim to be an approver.
+    const { data: actor, error: actorError } = await db
+      .from("app_users")
+      .select("id, name, role, can_approve")
+      .eq("is_current_user", true)
+      .maybeSingle();
+    if (actorError) throw new Error(actorError.message);
+    if (!actor) throw new Error("No active session user");
+
     if (draft.is_external && (data.status === "approved" || data.status === "rejected")) {
-      const { data: actor, error: actorError } = await db
-        .from("app_users")
-        .select("can_approve, name")
-        .eq("id", data.actorUserId)
-        .maybeSingle();
-      if (actorError) throw new Error(actorError.message);
-      if (!actor?.can_approve) {
+      // Authority is decided here, not in the UI.
+      if (!actor.can_approve) {
         throw new Error(
-          "This user may not approve or reject outgoing client correspondence.",
+          `${actor.name} (${actor.role}) may not approve or reject outgoing client correspondence.`,
+        );
+      }
+    }
+
+    // Authority is not the only gate. A reply that rests on a figure the
+    // client stated but never evidenced must not leave the firm, however
+    // senior the approver is.
+    if (draft.is_external && data.status === "approved") {
+      const { data: unevidenced, error: intakeError } = await db
+        .from("intake_fields")
+        .select("label")
+        .eq("request_id", draft.request_id)
+        .eq("status", "uncertain");
+      if (intakeError) throw new Error(intakeError.message);
+      if (unevidenced?.length) {
+        throw new Error(
+          `This reply cannot be sent yet. ${unevidenced
+            .map((f) => `"${f.label}"`)
+            .join(", ")} is recorded but not evidenced, and the answer depends on it. Obtain the evidence, or remove the statement that relies on it, before approving.`,
         );
       }
     }
@@ -132,7 +152,7 @@ export const setDraftStatus = createServerFn({ method: "POST" })
 
     await recordEvent({
       actor: "user",
-      actorName: data.actorName,
+      actorName: actor.name,
       action:
         data.status === "approved"
           ? "Draft approved and sent"
@@ -209,6 +229,43 @@ export const resetDemo = createServerFn({ method: "POST" }).handler(async () => 
   if (error) throw new Error(error.message);
   return { ok: true };
 });
+
+/**
+ * Demonstration control only. There is no authentication in this prototype;
+ * the "signed-in" user is a single stored flag on app_users, and every
+ * server-side authority check reads that flag rather than anything the
+ * browser sends. Switching therefore changes what the server permits.
+ */
+export const setSessionUser = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => z.object({ userId: z.string() }).parse(data))
+  .handler(async ({ data }) => {
+    const { admin } = await import("./writes.server");
+    const db = await admin();
+
+    const { data: user, error: readError } = await db
+      .from("app_users")
+      .select("id, name, role, can_approve")
+      .eq("id", data.userId)
+      .maybeSingle();
+    if (readError) throw new Error(readError.message);
+    if (!user) throw new Error("Unknown user");
+
+    const { error: clearError } = await db
+      .from("app_users")
+      .update({ is_current_user: false })
+      .eq("is_current_user", true);
+    if (clearError) throw new Error(clearError.message);
+
+    const { error } = await db
+      .from("app_users")
+      .update({ is_current_user: true })
+      .eq("id", user.id);
+    if (error) throw new Error(error.message);
+
+    // Deliberately not written to activity_events: that table is the audit
+    // trail of client work, not a log of demonstration controls.
+    return { ok: true, name: user.name, role: user.role, canApprove: user.can_approve };
+  });
 
 /**
  * Live retrieval over the corpus. The caller sends a question and who is

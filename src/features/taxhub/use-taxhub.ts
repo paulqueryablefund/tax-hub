@@ -8,6 +8,7 @@ import {
   resetDemo,
   saveDraftSection,
   saveIntakeField,
+  setSessionUser,
   setDraftStatus,
 } from "./api/taxhub.functions";
 import type { KnowledgeResult, RequestOverview, TaxhubSnapshot } from "./types";
@@ -71,6 +72,7 @@ export function useTaxhubActions() {
   const escalate = useServerFn(escalateRequest);
   const record = useServerFn(logEvent);
   const reset = useServerFn(resetDemo);
+  const switchUser = useServerFn(setSessionUser);
 
   const updateIntakeField = useMutation({
     mutationFn: (data: { requestId: string; fieldId: string; value: string; actorName: string }) =>
@@ -82,8 +84,6 @@ export function useTaxhubActions() {
     mutationFn: (data: {
       draftId: string;
       status: "draft" | "approved" | "sent" | "rejected";
-      actorUserId: string;
-      actorName: string;
       note: string;
     }) => setStatus({ data }),
     onSuccess: invalidate,
@@ -122,6 +122,12 @@ export function useTaxhubActions() {
     onSuccess: invalidate,
   });
 
+  /** Demonstration control: swaps the stored session user the server reads. */
+  const setDemoUser = useMutation({
+    mutationFn: (data: { userId: string }) => switchUser({ data }),
+    onSuccess: invalidate,
+  });
+
   return {
     updateIntakeField,
     updateDraftStatus,
@@ -129,5 +135,6 @@ export function useTaxhubActions() {
     escalateRequest: escalateRequestTo,
     logActivity,
     resetDemonstration,
+    setDemoUser,
   };
 }

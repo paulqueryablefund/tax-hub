@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Inbox, ShieldCheck, UserCheck } from "lucide-react";
+import { ArrowRight, Inbox, ShieldCheck, UserCheck, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   EmptyState,
@@ -38,6 +39,8 @@ function Overview() {
 
   return (
     <div className="space-y-6">
+      <SharedInstanceNotice />
+
       <PageHeader
         tourId="overview.header"
         eyebrow={`${workspace.shortName} · ${workspace.city} · ${workspace.headcount} staff`}
@@ -166,6 +169,54 @@ function Overview() {
           </ul>
         </Panel>
       </div>
+    </div>
+  );
+}
+
+const NOTICE_KEY = "taxhub.shared-instance-notice.v1";
+
+/**
+ * Read from localStorage in an effect, never during render: the server has no
+ * storage, and reading it in a state initialiser would hydrate as a mismatch.
+ */
+function SharedInstanceNotice() {
+  const [dismissed, setDismissed] = useState(true);
+
+  useEffect(() => {
+    try {
+      setDismissed(window.localStorage.getItem(NOTICE_KEY) === "dismissed");
+    } catch {
+      setDismissed(false);
+    }
+  }, []);
+
+  if (dismissed) return null;
+
+  return (
+    <div className="flex items-start gap-3 rounded-md border border-border-default bg-subtle px-4 py-3 text-sm text-text-secondary">
+      <p className="min-w-0 flex-1">
+        This is a shared demonstration instance. There is no sign-in and one database, so everyone
+        sees and changes the same data — a case may already be part-way through when you arrive.{" "}
+        <Link to="/settings" className="underline underline-offset-2">
+          Settings
+        </Link>{" "}
+        resets it to the starting state in one click.
+      </p>
+      <button
+        type="button"
+        aria-label="Dismiss the shared instance notice"
+        className="shrink-0 rounded-sm p-1 text-text-tertiary hover:text-text-primary"
+        onClick={() => {
+          setDismissed(true);
+          try {
+            window.localStorage.setItem(NOTICE_KEY, "dismissed");
+          } catch {
+            /* a browser that refuses storage simply shows the notice again */
+          }
+        }}
+      >
+        <X aria-hidden className="size-4" />
+      </button>
     </div>
   );
 }

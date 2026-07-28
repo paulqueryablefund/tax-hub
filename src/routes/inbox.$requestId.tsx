@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { AlertTriangle, ArrowUpRight, FileSignature, ListChecks } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   CaveatList,
@@ -13,6 +14,7 @@ import {
   formatDate,
   formatDateTime,
 } from "@/features/taxhub/components/primitives";
+import { useAnnounce } from "@/features/taxhub/components/announcer";
 import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 
 export const Route = createFileRoute("/inbox/$requestId")({
@@ -53,6 +55,7 @@ function RequestDetail() {
   const { requestId } = Route.useParams();
   const { requests, drafts, clientById, userById, currentUser } = useTaxhub();
   const { escalateRequest } = useTaxhubActions();
+  const announce = useAnnounce();
   const request = requests.find((r) => r.id === requestId);
   if (!request) throw notFound();
 
@@ -232,13 +235,27 @@ function RequestDetail() {
                   className="mt-3 w-full"
                   disabled={escalateRequest.isPending}
                   onClick={() =>
-                    escalateRequest.mutate({
-                      requestId: request.id,
-                      toUserId: "u-ehlers",
-                      reason:
-                        "Firm handbook 4.3 requires review by a Steuerberater when the gross list price may exceed the reduced-base ceiling.",
-                      actorName: actor.name,
-                    })
+                    escalateRequest.mutate(
+                      {
+                        requestId: request.id,
+                        toUserId: "u-ehlers",
+                        reason:
+                          "Firm handbook 4.3 requires review by a Steuerberater when the gross list price may exceed the reduced-base ceiling.",
+                        actorName: actor.name,
+                      },
+                      {
+                        onSuccess: () => {
+                          const message =
+                            "Escalated to Jonas Ehlers. The client was not contacted; the handover is in the activity trail.";
+                          toast.success(message);
+                          announce(message);
+                        },
+                        onError: (error) => {
+                          toast.error(`Escalation failed: ${error.message}`);
+                          announce(`Escalation failed: ${error.message}`);
+                        },
+                      },
+                    )
                   }
                 >
                   <ArrowUpRight aria-hidden className="size-4" />

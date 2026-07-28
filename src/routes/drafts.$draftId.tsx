@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Check, Copy, Pencil, X } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -18,10 +19,12 @@ import {
   CaveatList,
   CitationList,
   ConfidenceBadge,
+  EmptyState,
   PageHeader,
   Panel,
   formatDateTime,
 } from "@/features/taxhub/components/primitives";
+import { useAnnounce } from "@/features/taxhub/components/announcer";
 import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 
 export const Route = createFileRoute("/drafts/$draftId")({
@@ -41,12 +44,28 @@ export const Route = createFileRoute("/drafts/$draftId")({
     ],
   }),
   component: DraftReview,
+  notFoundComponent: DraftNotFound,
 });
+
+function DraftNotFound() {
+  return (
+    <EmptyState
+      title="Draft not found"
+      description="This draft does not exist in the demonstration workspace. It may have been discarded by a demonstration reset."
+      action={
+        <Button asChild variant="outline">
+          <Link to="/drafts">Back to drafts</Link>
+        </Button>
+      }
+    />
+  );
+}
 
 function DraftReview() {
   const { draftId } = Route.useParams();
   const { drafts, requests, users, currentUser } = useTaxhub();
   const { updateDraftStatus, updateDraftSection } = useTaxhubActions();
+  const announce = useAnnounce();
   const draft = drafts.find((d) => d.id === draftId);
   if (!draft) throw notFound();
 
@@ -56,6 +75,42 @@ function DraftReview() {
   const [editing, setEditing] = useState<number | null>(null);
   const [editedBody, setEditedBody] = useState("");
   const [copied, setCopied] = useState(false);
+
+  /**
+   * Two independent gates, both enforced on the server. Role decides who may
+   * sign; evidence decides whether anything may be signed at all.
+   */
+  const unevidenced = (request?.intake ?? []).filter((f) => f.status === "uncertain");
+  const roleBlocked = !actor.canApprove;
+  const evidenceBlocked = draft.isExternal && unevidenced.length > 0;
+  const approvalBlocked = roleBlocked || evidenceBlocked;
+  const blockReason = roleBlocked
+    ? `Approving is not available to ${actor.name} (${actor.role}). Only a user with signing authority — for example ${approver.name} (${approver.role}) — may release this to the client. The server refuses the approval, not just this button.`
+    : evidenceBlocked
+      ? `Approving is blocked because ${unevidenced
+          .map((f) => `"${f.label}"`)
+          .join(", ")} is recorded but not evidenced, and this reply depends on it. The server refuses the approval until the evidence is on file, whoever is signed in.`
+      : "";
+
+  const decide = (status: "approved" | "rejected", note: string) =>
+    updateDraftStatus.mutate(
+      { draftId: draft.id, status, note },
+      {
+        onSuccess: () => {
+          const message =
+            status === "approved"
+              ? `Approved and sent to ${draft.recipient}. The decision is in the activity trail.`
+              : "Draft rejected. Nothing was sent and the case stays open.";
+          toast.success(message);
+          announce(message);
+        },
+        onError: (error) => {
+          const message = `Not ${status === "approved" ? "approved" : "rejected"}: ${error.message}`;
+          toast.error(message);
+          announce(message);
+        },
+      },
+    );
 
   const saveSection = (index: number, body: string) => {
     if (body !== draft.sections[index]?.body) {
@@ -82,13 +137,21 @@ function DraftReview() {
         description={`Prepared ${formatDateTime(draft.generatedAt)}. Nothing has been sent.`}
       />
 
-      {!actor.canApprove ? (
+      {roleBlocked ? (
         <div
           data-tour="drafts.review-handoff"
           className="rounded-md border border-human-review-required/30 bg-human-review-required-bg px-4 py-3 text-sm text-human-review-required"
         >
           You are signed in as {actor.name} ({actor.role}) and cannot approve outgoing client
           correspondence. You can edit the draft and hand it to {approver.name}.
+        </div>
+      ) : null}
+
+      {!roleBlocked && evidenceBlocked ? (
+        <div className="rounded-md border border-ai-uncertain/40 bg-ai-uncertain-bg px-4 py-3 text-sm text-text-primary">
+          You may approve outgoing correspondence, but this reply is still blocked:{" "}
+          {unevidenced.map((f) => `"${f.label}"`).join(", ")} is recorded but not evidenced. The gate
+          is about evidence, not only about role.
         </div>
       ) : null}
 
@@ -183,9 +246,33 @@ function DraftReview() {
               </p>
             ) : (
               <div className="space-y-2">
+                {approvalBlocked ? (
+                  <>
+                    {/*
+                      aria-disabled rather than disabled: the control stays
+                      focusable, so a keyboard or screen-reader user reaches it
+                      and is told why it will not act, and by whom it can be.
+                    */}
+                    <Button
+                      className="w-full opacity-50"
+                      aria-disabled
+                      aria-describedby="approve-block-reason"
+                      onClick={() => {
+                        toast.error(blockReason);
+                        announce(blockReason);
+                      }}
+                    >
+                      <Check aria-hidden className="size-4" />
+                      Approve and send
+                    </Button>
+                    <p id="approve-block-reason" className="text-xs text-text-secondary">
+                      {blockReason}
+                    </p>
+                  </>
+                ) : (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button className="w-full" disabled={!actor.canApprove}>
+                    <Button className="w-full">
                       <Check aria-hidden className="size-4" />
                       Approve and send
                     </Button>
@@ -203,13 +290,10 @@ function DraftReview() {
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() =>
-                          updateDraftStatus.mutate({
-                            draftId: draft.id,
-                            status: "approved",
-                            actorUserId: actor.id,
-                            actorName: actor.name,
-                            note: `Approved and sent "${draft.subject}" to ${draft.recipient}.`,
-                          })
+                          decide(
+                            "approved",
+                            `Approved and sent "${draft.subject}" to ${draft.recipient}.`,
+                          )
                         }
                       >
                         Approve and send
@@ -217,19 +301,14 @@ function DraftReview() {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
+                )}
 
                 <Button
                   variant="outline"
                   className="w-full"
                   disabled={updateDraftStatus.isPending}
                   onClick={() =>
-                    updateDraftStatus.mutate({
-                      draftId: draft.id,
-                      status: "rejected",
-                      actorUserId: actor.id,
-                      actorName: actor.name,
-                      note: `Rejected "${draft.subject}". The case remains open.`,
-                    })
+                    decide("rejected", `Rejected "${draft.subject}". The case remains open.`)
                   }
                 >
                   <X aria-hidden className="size-4" />
