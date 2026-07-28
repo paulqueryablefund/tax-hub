@@ -57,6 +57,7 @@ export const Route = createFileRoute("/sources/")({
 });
 
 function SourceLibrary() {
+  const { sources } = useTaxhub();
   const attention = sources.filter((s) => s.health !== "current");
 
   return (
