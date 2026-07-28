@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Today's client requests, the items waiting for approval, and the health of the source library.",
+          "Today's client requests, the items waiting for a professional's approval, and the health of the firm's source library.",
       },
     ],
   }),

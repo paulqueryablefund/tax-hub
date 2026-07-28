@@ -78,20 +78,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "TaxHub — AI operating hub for tax advisory firms" },
+      { title: "Overview — TaxHub" },
       {
         name: "description",
         content:
-          "Capture client requests, find what is missing, answer from your own sources with citations, and approve every reply before it leaves the firm.",
+          "Today's client requests, the items waiting for a professional's approval, and the health of the firm's source library.",
       },
-      { property: "og:title", content: "TaxHub — AI operating hub for tax advisory firms" },
+      { property: "og:title", content: "Overview — TaxHub" },
       {
         property: "og:description",
         content:
-          "Intake, grounded answers with citations, and a human approval gate for German Steuerberatung firms.",
+          "Today's client requests, the items waiting for a professional's approval, and the health of the firm's source library.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Overview — TaxHub" },
+      { name: "twitter:description", content: "Today's client requests, the items waiting for a professional's approval, and the health of the firm's source library." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/435d7cc9-802a-48f7-a102-57ec08da6c5d/id-preview-0cc74ffd--dd405a74-de96-4112-902e-6defdb1ccfd4.lovable.app-1785244047355.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/435d7cc9-802a-48f7-a102-57ec08da6c5d/id-preview-0cc74ffd--dd405a74-de96-4112-902e-6defdb1ccfd4.lovable.app-1785244047355.png" },
     ],
     links: [
       {
