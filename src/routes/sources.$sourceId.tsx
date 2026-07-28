@@ -12,6 +12,7 @@ import {
   formatDate,
 } from "@/features/taxhub/components/primitives";
 import { useTaxhub } from "@/features/taxhub/use-taxhub";
+import { MIRROR_NOTICES } from "@/features/taxhub/mirror-notices";
 
 const searchSchema = z.object({
   passage: z.string().optional(),
@@ -73,6 +74,14 @@ function SourceDetail() {
     depends_on: "Depends on",
   };
   const relations = source.relations ?? [];
+  const mirrorNotice = MIRROR_NOTICES[source.id];
+  // The stored note is a curator's annotation; some entries are prefixed with
+  // an internal marker. Present the marker as a label, not as raw prose.
+  const rawNote = source.note ?? "";
+  const noteIsWarning = rawNote.startsWith("CITATION WARNING —");
+  const curatorNote = noteIsWarning
+    ? rawNote.replace(/^CITATION WARNING —\s*/, "")
+    : rawNote;
 
   return (
     <div className="space-y-6">
@@ -88,7 +97,7 @@ function SourceDetail() {
         tourId="sources.detail-header"
         eyebrow={source.publisher}
         title={source.title}
-        description={source.note}
+        description={undefined}
         actions={
           source.url ? (
             <a
@@ -112,7 +121,25 @@ function SourceDetail() {
             Publicly available material
           </span>
         ) : null}
+        {mirrorNotice ? (
+          <span className="rounded-sm bg-status-neutral-bg px-2 py-0.5 text-xs font-medium text-status-neutral">
+            Mirror copy
+          </span>
+        ) : null}
       </div>
+
+      {mirrorNotice ? (
+        <p className="text-sm text-text-secondary">{mirrorNotice}</p>
+      ) : null}
+
+      {curatorNote ? (
+        <Panel title="Curator's note">
+          {noteIsWarning ? (
+            <p className="type-label mb-1 text-source-conflict">Citation warning</p>
+          ) : null}
+          <p className="text-sm leading-relaxed text-text-secondary">{curatorNote}</p>
+        </Panel>
+      ) : null}
 
       {source.health === "outdated" ? (
         <div className="rounded-md border border-status-neutral/30 bg-status-neutral-bg px-4 py-3 text-sm">
