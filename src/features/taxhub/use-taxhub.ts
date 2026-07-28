@@ -40,7 +40,7 @@ export function useTaxhub() {
  */
 export function useAskKnowledge() {
   const ask = useServerFn(askKnowledge);
-  return useMutation<KnowledgeResult, Error, { question: string; userId: string }>({
+  return useMutation<KnowledgeResult, Error, { question: string }>({
     mutationFn: (data) => ask({ data }),
   });
 }
