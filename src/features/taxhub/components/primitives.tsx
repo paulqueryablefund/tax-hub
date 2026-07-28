@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { sourceById } from "../data/sources";
+import { useTaxhub } from "../use-taxhub";
 import type {
   Citation,
   Confidence,
@@ -203,8 +203,9 @@ export function FictionalBadge({ className }: { className?: string }) {
 
 /** Inline, numbered citation marker that links to the passage in the source. */
 export function CitationChip({ citation, index }: { citation: Citation; index: number }) {
+  const { sourceById } = useTaxhub();
   const source = sourceById(citation.sourceId);
-  if (!source) return null;
+  if (!source) return <BrokenCitation id={citation.sourceId} />;
   return (
     <Link
       to="/sources/$sourceId"
