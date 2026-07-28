@@ -129,7 +129,8 @@ function GuidedIntake() {
 
           <Panel title="What happens next">
             <p className="text-sm text-text-secondary">
-              Recording an item updates the case and the pending draft. Nothing is sent to{" "}
+              Recording an item updates the case and the approval gate on the pending draft. Nothing
+              is sent to{" "}
               {client.contactName} until a person with signing authority approves the reply.
               {request.dueDate ? ` Target date: ${formatDate(request.dueDate)}.` : ""}
             </p>
