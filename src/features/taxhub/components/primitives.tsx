@@ -285,8 +285,6 @@ export function CitationList({
 export function CaveatList({ caveats }: { caveats: string[] }) {
   if (!caveats.length) return null;
   return (
-  if (!caveats.length) return null;
-  return (
     <div className="rounded-sm border border-ai-uncertain/30 bg-ai-uncertain-bg px-3 py-2">
       <p className="type-label mb-1 text-ai-uncertain">What is not certain</p>
       <ul className="list-disc space-y-1 pl-4 text-sm text-text-primary">
@@ -295,6 +293,16 @@ export function CaveatList({ caveats }: { caveats: string[] }) {
         ))}
       </ul>
     </div>
+  );
+}
+
+/** A citation whose source is missing must never disappear quietly. */
+function BrokenCitation({ id }: { id: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-sm border border-status-danger/40 bg-status-danger-bg px-1.5 py-0.5 text-xs font-medium text-status-danger">
+      <AlertTriangle aria-hidden className="size-3" />
+      Broken citation — source {id} is not in the library
+    </span>
   );
 }
 
