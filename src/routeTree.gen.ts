@@ -10,18 +10,28 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SourcesRouteImport } from './routes/sources'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as InboxRouteImport } from './routes/inbox'
+import { Route as DraftsRouteImport } from './routes/drafts'
+import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SourcesIndexRouteImport } from './routes/sources.index'
 import { Route as InboxIndexRouteImport } from './routes/inbox.index'
+import { Route as DraftsIndexRouteImport } from './routes/drafts.index'
 import { Route as SourcesSourceIdRouteImport } from './routes/sources.$sourceId'
 import { Route as IntakeRequestIdRouteImport } from './routes/intake.$requestId'
 import { Route as InboxRequestIdRouteImport } from './routes/inbox.$requestId'
+import { Route as DraftsDraftIdRouteImport } from './routes/drafts.$draftId'
 
 const SourcesRoute = SourcesRouteImport.update({
   id: '/sources',
   path: '/sources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KnowledgeRoute = KnowledgeRouteImport.update({
@@ -32,6 +42,16 @@ const KnowledgeRoute = KnowledgeRouteImport.update({
 const InboxRoute = InboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DraftsRoute = DraftsRouteImport.update({
+  id: '/drafts',
+  path: '/drafts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivityRoute = ActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -49,6 +69,11 @@ const InboxIndexRoute = InboxIndexRouteImport.update({
   path: '/',
   getParentRoute: () => InboxRoute,
 } as any)
+const DraftsIndexRoute = DraftsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DraftsRoute,
+} as any)
 const SourcesSourceIdRoute = SourcesSourceIdRouteImport.update({
   id: '/$sourceId',
   path: '/$sourceId',
@@ -64,36 +89,55 @@ const InboxRequestIdRoute = InboxRequestIdRouteImport.update({
   path: '/$requestId',
   getParentRoute: () => InboxRoute,
 } as any)
+const DraftsDraftIdRoute = DraftsDraftIdRouteImport.update({
+  id: '/$draftId',
+  path: '/$draftId',
+  getParentRoute: () => DraftsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
+  '/drafts': typeof DraftsRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/knowledge': typeof KnowledgeRoute
+  '/settings': typeof SettingsRoute
   '/sources': typeof SourcesRouteWithChildren
+  '/drafts/$draftId': typeof DraftsDraftIdRoute
   '/inbox/$requestId': typeof InboxRequestIdRoute
   '/intake/$requestId': typeof IntakeRequestIdRoute
   '/sources/$sourceId': typeof SourcesSourceIdRoute
+  '/drafts/': typeof DraftsIndexRoute
   '/inbox/': typeof InboxIndexRoute
   '/sources/': typeof SourcesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
   '/knowledge': typeof KnowledgeRoute
+  '/settings': typeof SettingsRoute
+  '/drafts/$draftId': typeof DraftsDraftIdRoute
   '/inbox/$requestId': typeof InboxRequestIdRoute
   '/intake/$requestId': typeof IntakeRequestIdRoute
   '/sources/$sourceId': typeof SourcesSourceIdRoute
+  '/drafts': typeof DraftsIndexRoute
   '/inbox': typeof InboxIndexRoute
   '/sources': typeof SourcesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
+  '/drafts': typeof DraftsRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/knowledge': typeof KnowledgeRoute
+  '/settings': typeof SettingsRoute
   '/sources': typeof SourcesRouteWithChildren
+  '/drafts/$draftId': typeof DraftsDraftIdRoute
   '/inbox/$requestId': typeof InboxRequestIdRoute
   '/intake/$requestId': typeof IntakeRequestIdRoute
   '/sources/$sourceId': typeof SourcesSourceIdRoute
+  '/drafts/': typeof DraftsIndexRoute
   '/inbox/': typeof InboxIndexRoute
   '/sources/': typeof SourcesIndexRoute
 }
@@ -101,40 +145,57 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/activity'
+    | '/drafts'
     | '/inbox'
     | '/knowledge'
+    | '/settings'
     | '/sources'
+    | '/drafts/$draftId'
     | '/inbox/$requestId'
     | '/intake/$requestId'
     | '/sources/$sourceId'
+    | '/drafts/'
     | '/inbox/'
     | '/sources/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/activity'
     | '/knowledge'
+    | '/settings'
+    | '/drafts/$draftId'
     | '/inbox/$requestId'
     | '/intake/$requestId'
     | '/sources/$sourceId'
+    | '/drafts'
     | '/inbox'
     | '/sources'
   id:
     | '__root__'
     | '/'
+    | '/activity'
+    | '/drafts'
     | '/inbox'
     | '/knowledge'
+    | '/settings'
     | '/sources'
+    | '/drafts/$draftId'
     | '/inbox/$requestId'
     | '/intake/$requestId'
     | '/sources/$sourceId'
+    | '/drafts/'
     | '/inbox/'
     | '/sources/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActivityRoute: typeof ActivityRoute
+  DraftsRoute: typeof DraftsRouteWithChildren
   InboxRoute: typeof InboxRouteWithChildren
   KnowledgeRoute: typeof KnowledgeRoute
+  SettingsRoute: typeof SettingsRoute
   SourcesRoute: typeof SourcesRouteWithChildren
   IntakeRequestIdRoute: typeof IntakeRequestIdRoute
 }
@@ -146,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/sources'
       fullPath: '/sources'
       preLoaderRoute: typeof SourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/knowledge': {
@@ -160,6 +228,20 @@ declare module '@tanstack/react-router' {
       path: '/inbox'
       fullPath: '/inbox'
       preLoaderRoute: typeof InboxRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/drafts': {
+      id: '/drafts'
+      path: '/drafts'
+      fullPath: '/drafts'
+      preLoaderRoute: typeof DraftsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activity': {
+      id: '/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof ActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -183,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InboxIndexRouteImport
       parentRoute: typeof InboxRoute
     }
+    '/drafts/': {
+      id: '/drafts/'
+      path: '/'
+      fullPath: '/drafts/'
+      preLoaderRoute: typeof DraftsIndexRouteImport
+      parentRoute: typeof DraftsRoute
+    }
     '/sources/$sourceId': {
       id: '/sources/$sourceId'
       path: '/$sourceId'
@@ -204,8 +293,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InboxRequestIdRouteImport
       parentRoute: typeof InboxRoute
     }
+    '/drafts/$draftId': {
+      id: '/drafts/$draftId'
+      path: '/$draftId'
+      fullPath: '/drafts/$draftId'
+      preLoaderRoute: typeof DraftsDraftIdRouteImport
+      parentRoute: typeof DraftsRoute
+    }
   }
 }
+
+interface DraftsRouteChildren {
+  DraftsDraftIdRoute: typeof DraftsDraftIdRoute
+  DraftsIndexRoute: typeof DraftsIndexRoute
+}
+
+const DraftsRouteChildren: DraftsRouteChildren = {
+  DraftsDraftIdRoute: DraftsDraftIdRoute,
+  DraftsIndexRoute: DraftsIndexRoute,
+}
+
+const DraftsRouteWithChildren =
+  DraftsRoute._addFileChildren(DraftsRouteChildren)
 
 interface InboxRouteChildren {
   InboxRequestIdRoute: typeof InboxRequestIdRoute
@@ -234,8 +343,11 @@ const SourcesRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActivityRoute: ActivityRoute,
+  DraftsRoute: DraftsRouteWithChildren,
   InboxRoute: InboxRouteWithChildren,
   KnowledgeRoute: KnowledgeRoute,
+  SettingsRoute: SettingsRoute,
   SourcesRoute: SourcesRouteWithChildren,
   IntakeRequestIdRoute: IntakeRequestIdRoute,
 }
