@@ -245,6 +245,11 @@ export interface RetrievedPassage {
   url?: string;
   /** Rank inside each arm. 0 means the arm did not return this passage. */
   ranks: { fts: number; trgm: number; anchor: number };
+  /**
+   * Raw, absolute arm scores — unlike the RRF score these say whether the
+   * match is any good, not merely that something had to rank first.
+   */
+  raw?: { fts: number; trgm: number; anchor: number };
   /** Reciprocal-rank-fusion score across the three arms. */
   score: number;
   used: boolean;
@@ -279,9 +284,15 @@ export interface KnowledgeRefusal {
 }
 
 export interface KnowledgeResult {
-  lane: "live_retrieval";
+  /**
+   * "guided_example" is a curated answer stored in the database and served
+   * verbatim; "live_retrieval" is assembled from a fresh search. Both are
+   * first-class and are always labelled in the UI.
+   */
+  lane: "live_retrieval" | "guided_example";
   question: string;
-  expansion: QueryExpansion;
+  /** Only live retrieval translates and expands a question. */
+  expansion?: QueryExpansion;
   retrieved: RetrievedPassage[];
   answer: AnswerBlock | null;
   refusal?: KnowledgeRefusal;

@@ -1049,9 +1049,11 @@ export type Database = {
           query_text: string
         }
         Returns: {
+          anchor_hits: number
           anchor_rank: number
           exclusion_reason: string
           fts_rank: number
+          fts_score: number
           fused_score: number
           locator: string
           passage_id: string
@@ -1059,6 +1061,7 @@ export type Database = {
           source_title: string
           text: string
           trgm_rank: number
+          trgm_score: number
           url: string
           used: boolean
         }[]

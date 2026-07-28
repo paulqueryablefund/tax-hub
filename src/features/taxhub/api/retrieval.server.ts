@@ -199,6 +199,9 @@ type SearchRow = {
   fts_rank: number;
   trgm_rank: number;
   anchor_rank: number;
+  fts_score: number;
+  trgm_score: number;
+  anchor_hits: number;
   fused_score: number;
   used: boolean;
   exclusion_reason: string | null;
@@ -226,6 +229,11 @@ async function search(
     sourceTitle: row.source_title,
     url: row.url ?? undefined,
     ranks: { fts: row.fts_rank, trgm: row.trgm_rank, anchor: row.anchor_rank },
+    raw: {
+      fts: Number(row.fts_score),
+      trgm: Number(row.trgm_score),
+      anchor: Number(row.anchor_hits),
+    },
     score: Number(row.fused_score),
     used: row.used,
     exclusionReason: row.exclusion_reason ?? undefined,
@@ -246,7 +254,14 @@ const RELATION_WORDS: Record<string, string> = {
   depends_on: "depends on",
 };
 
-async function findConflicts(used: RetrievedPassage[]) {
+/**
+ * Conflicts are read across everything retrieval returned, not only the
+ * passages that cleared the relevance bar: a recorded disagreement between
+ * two sources the search touched must never be hidden because one side
+ * scored a little lower.
+ */
+async function findConflicts(retrieved: RetrievedPassage[]) {
+  const used = retrieved;
   if (used.length < 2) return undefined;
   const db = await admin();
   const ids = [...new Set(used.map((p) => p.sourceId))];
@@ -266,32 +281,48 @@ async function findConflicts(used: RetrievedPassage[]) {
     .in("id", ids);
   const meta = new Map((sourceRows ?? []).map((s) => [s.id, s]));
 
-  const edge = edges[0];
-  const a = meta.get(edge.source_id);
-  const b = meta.get(edge.superseded_by_id!);
-  if (!a || !b) return undefined;
+  // Every conflict edge among the retrieved sources is surfaced. Showing one
+  // and dropping the rest would be the silent choice this feature exists to
+  // prevent.
+  const notes: string[] = [];
+  const citations: Citation[] = [];
+  for (const edge of edges) {
+    const a = meta.get(edge.source_id);
+    const b = edge.superseded_by_id ? meta.get(edge.superseded_by_id) : undefined;
+    if (!a || !b) continue;
 
-  // Which one governs is decided by the stated in-force dates, never guessed.
-  const governing =
-    a.effective_from && b.effective_from
-      ? new Date(a.effective_from) > new Date(b.effective_from)
-        ? a
-        : b
-      : null;
+    // Which one governs is decided by the stated in-force dates, never guessed.
+    const governing =
+      a.effective_from && b.effective_from
+        ? new Date(a.effective_from) > new Date(b.effective_from)
+          ? a
+          : b
+        : null;
 
-  const citations: Citation[] = [edge.source_id, edge.superseded_by_id!].flatMap((sid) => {
-    const passage = used.find((p) => p.sourceId === sid);
-    return passage
-      ? [{ sourceId: sid, passageId: passage.passageId, reason: `${passage.locator} — retrieved for this question.` }]
-      : [];
-  });
+    for (const sid of [edge.source_id, edge.superseded_by_id!]) {
+      const passage = used.find((p) => p.sourceId === sid && p.used) ?? used.find((p) => p.sourceId === sid);
+      if (!passage || citations.some((c) => c.passageId === passage.passageId)) continue;
+      citations.push({
+        sourceId: sid,
+        passageId: passage.passageId,
+        reason: passage.used
+          ? `${passage.locator} — retrieved for this question.`
+          : `${passage.locator} — retrieved for this question but below the relevance bar, so it did not feed the answer. It is shown because the library records a conflict.`,
+      });
+    }
 
-  const relationWord = RELATION_WORDS[edge.relation] ?? "is related to";
-  const note = governing
-    ? `The library records that ${a.short_title} ${relationWord} ${b.short_title}. Both are real and both were retrieved, so both are shown rather than one being chosen silently. ${governing.short_title} governs, because it is the later of the two stated in-force dates (${governing.effective_from}).${edge.effective_note ? ` ${edge.effective_note}` : ""}${edge.scope ? ` Scope: ${edge.scope}.` : ""}`
-    : `The library records that ${a.short_title} ${relationWord} ${b.short_title}. Both are real and both were retrieved. The library does not state which one governs, so neither was chosen for you.`;
+    const relationWord = RELATION_WORDS[edge.relation] ?? "is related to";
+    notes.push(
+      governing
+        ? `The library records that ${a.short_title} ${relationWord} ${b.short_title}. Both are real and both were retrieved, so both are shown rather than one being chosen silently. ${governing.short_title} governs, because it is the later of the two stated in-force dates (${governing.effective_from}).${edge.effective_note ? ` ${edge.effective_note}` : ""}${edge.scope ? ` Scope: ${edge.scope}.` : ""}`
+        : `The library records that ${a.short_title} ${relationWord} ${b.short_title}. Both are real and both were retrieved. The library does not state which one governs, so neither was chosen for you.`,
+    );
+  }
 
-  return { note, citations };
+  if (!notes.length) return undefined;
+  const heading =
+    notes.length > 1 ? `${notes.length} conflicts were recorded between the retrieved sources. ` : "";
+  return { note: heading + notes.join(" "), citations };
 }
 
 /* ------------------------------------------------------------------ *
@@ -350,8 +381,15 @@ function computeConfidence(
   return "low";
 }
 
-const SCORE_FLOOR = 0.014;
-
+/*
+ * There is deliberately no threshold on the fused score. RRF scores are
+ * ordinal: 1/(60+rank) says a passage ranked first in some arm, never that
+ * the match was any good, and something always ranks first. The admission
+ * gate lives in search_passages and works on the RAW arm scores
+ * (ts_rank_cd >= 0.2, word_similarity >= 0.35, or an exact citation anchor).
+ * Passages that only appear because the ranking had to put something first
+ * come back with used = false and an exclusion reason.
+ */
 export async function askKnowledge(
   question: string,
   callerVisibility: string,
@@ -371,14 +409,16 @@ export async function askKnowledge(
     modelId: KNOWLEDGE_MODEL_ID,
   };
 
-  if (!used.length || used[0].score < SCORE_FLOOR) {
+  // Refusal happens here, before any gateway call: if retrieval admitted
+  // nothing, there is nothing for a model to be grounded in.
+  if (!used.length) {
     return {
       ...base,
       answer: null,
       droppedSentences: 0,
       refusal: {
-        reason: used.length
-          ? "Passages were found but none matched the question closely enough to answer from. Nothing was assumed and no general knowledge was used."
+        reason: excluded.length
+          ? "Passages were found but none cleared the relevance bar, so the question was refused at the retrieval stage and no model was asked. Nothing was assumed and no general knowledge was used."
           : "No passage in this workspace covers that question, so no answer was produced. Nothing was assumed and no general knowledge was used.",
         searched: searchedDescription,
       },
@@ -411,16 +451,16 @@ export async function askKnowledge(
     };
   }
 
-  // The server, not the model, decides what the user reads. Any sentence
-  // citing a passage that was never supplied is dropped outright.
+  // The server, not the model, decides what the user reads. If a sentence
+  // cites even one passage that was never supplied, part of its support is
+  // invented, so the whole sentence is dropped — never trimmed and shown.
   const validLabels = new Set(used.map((p) => p.label!));
   const kept: { text: string; labels: string[] }[] = [];
   let dropped = 0;
   for (const sentence of model.sentences ?? []) {
-    const labels = (sentence.passages ?? [])
-      .map((l) => l.trim().toUpperCase())
-      .filter((l) => validLabels.has(l));
-    if (!sentence.text?.trim() || !labels.length) {
+    const labels = (sentence.passages ?? []).map((l) => l.trim().toUpperCase());
+    const fabricated = labels.some((l) => !validLabels.has(l));
+    if (!sentence.text?.trim() || !labels.length || fabricated) {
       dropped += 1;
       continue;
     }
@@ -456,7 +496,7 @@ export async function askKnowledge(
     }
   }
 
-  const conflicts = await findConflicts(used);
+  const conflicts = await findConflicts(retrieved);
   const confidence = computeConfidence(used, citations.length, dropped);
 
   const caveats: string[] = [
