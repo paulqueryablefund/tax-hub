@@ -201,6 +201,7 @@ function DraftReview() {
                           updateDraftStatus.mutate({
                             draftId: draft.id,
                             status: "approved",
+                            actorUserId: actor.id,
                             actorName: actor.name,
                             note: `Approved and sent "${draft.subject}" to ${draft.recipient}.`,
                           })
@@ -220,6 +221,7 @@ function DraftReview() {
                     updateDraftStatus.mutate({
                       draftId: draft.id,
                       status: "rejected",
+                      actorUserId: actor.id,
                       actorName: actor.name,
                       note: `Rejected "${draft.subject}". The case remains open.`,
                     })

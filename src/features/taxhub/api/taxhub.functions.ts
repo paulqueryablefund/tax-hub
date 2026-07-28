@@ -105,7 +105,7 @@ export const setDraftStatus = createServerFn({ method: "POST" })
     // the firm can only be approved or rejected by a user with signing rights.
     if (draft.is_external && (data.status === "approved" || data.status === "rejected")) {
       const { data: actor, error: actorError } = await db
-        .from("users")
+        .from("app_users")
         .select("can_approve, name")
         .eq("id", data.actorUserId)
         .maybeSingle();
