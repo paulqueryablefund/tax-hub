@@ -282,7 +282,15 @@ export function CitationList({
                 <SourceHealthBadge health={source.health} />
               </div>
               {passage ? (
-                <blockquote className="mt-2 border-l-2 border-border-strong pl-3 text-sm text-text-primary">
+                <blockquote
+                  /*
+                   * The real corpus is verbatim German. Marking it up lets a
+                   * screen reader switch pronunciation instead of reading
+                   * "Bruttolistenpreis" as English.
+                   */
+                  lang={source.isFictional ? undefined : "de"}
+                  className="mt-2 border-l-2 border-border-strong pl-3 text-sm text-text-primary"
+                >
                   <span className="type-label mb-1 block">{passage.locator}</span>
                   {passage.text}
                 </blockquote>
