@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   BookOpen,
+  Compass,
   FileSignature,
   History,
   Inbox,
@@ -11,18 +12,29 @@ import {
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { useTaxhub } from "../use-taxhub";
+import { TourProvider, useTour } from "../tour/tour-provider";
+import { WORKFLOW_ORDER } from "../tour/tour-content";
 
 const nav = [
-  { to: "/", label: "Overview", icon: LayoutDashboard, exact: true },
-  { to: "/inbox", label: "Requests", icon: Inbox, exact: false },
-  { to: "/knowledge", label: "Knowledge", icon: BookOpen, exact: false },
-  { to: "/sources", label: "Sources", icon: Library, exact: false },
-  { to: "/drafts", label: "Drafts", icon: FileSignature, exact: false },
-  { to: "/activity", label: "Activity", icon: History, exact: false },
-  { to: "/settings", label: "Settings", icon: Settings, exact: false },
+  { to: "/", label: "Overview", icon: LayoutDashboard, exact: true, tour: "nav.overview" },
+  { to: "/inbox", label: "Requests", icon: Inbox, exact: false, tour: "nav.inbox" },
+  { to: "/knowledge", label: "Knowledge", icon: BookOpen, exact: false, tour: "nav.knowledge" },
+  { to: "/sources", label: "Sources", icon: Library, exact: false, tour: "nav.sources" },
+  { to: "/drafts", label: "Drafts", icon: FileSignature, exact: false, tour: "nav.drafts" },
+  { to: "/activity", label: "Activity", icon: History, exact: false, tour: "nav.activity" },
+  { to: "/settings", label: "Settings", icon: Settings, exact: false, tour: "nav.settings" },
+  { to: "/tour", label: "Guided tour", icon: Compass, exact: false, tour: "nav.tour" },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
+  return (
+    <TourProvider>
+      <AppChrome>{children}</AppChrome>
+    </TourProvider>
+  );
+}
+
+function AppChrome({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { requests, workspace, currentUser } = useTaxhub();
   const user = currentUser;
@@ -71,6 +83,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <li key={item.to} className="shrink-0">
                     <Link
                       to={item.to}
+                      data-tour={item.tour}
                       aria-current={active ? "page" : undefined}
                       className={cn(
                         "flex items-center gap-2 rounded-sm px-2.5 py-2 text-sm transition-colors",
@@ -82,10 +95,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                       <Icon aria-hidden className="size-4 shrink-0" />
                       <span>{item.label}</span>
                       {item.to === "/inbox" && reviewCount > 0 ? (
-                        <span className="ml-auto rounded-sm bg-human-review-required-bg px-1.5 py-0.5 text-[11px] font-semibold text-human-review-required">
+                        <span
+                          data-tour="inbox.nav-badge"
+                          className="ml-auto rounded-sm bg-human-review-required-bg px-1.5 py-0.5 text-[11px] font-semibold text-human-review-required"
+                        >
                           {reviewCount}
                         </span>
                       ) : null}
+                      {item.to === "/tour" ? <TourNavBadge /> : null}
                     </Link>
                   </li>
                 );
@@ -104,5 +121,20 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
       </div>
     </div>
+  );
+}
+
+/** Derived, never stored: how many of the nine area tours are complete. */
+function TourNavBadge() {
+  const { state, hydrated } = useTour();
+  if (!hydrated) return null;
+  const completed = WORKFLOW_ORDER.filter(
+    (area) => state.areas[area]?.tourStatus === "completed",
+  ).length;
+  if (completed === 0) return null;
+  return (
+    <span className="ml-auto rounded-sm bg-status-neutral-bg px-1.5 py-0.5 text-[11px] font-semibold text-status-neutral">
+      {completed}/{WORKFLOW_ORDER.length}
+    </span>
   );
 }

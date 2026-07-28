@@ -30,15 +30,20 @@ function Activity() {
   return (
     <div className="space-y-6">
       <PageHeader
+        tourId="activity.header"
         title="Activity"
         description="Every classification, retrieval, exclusion and human decision, in order. This is what a firm shows when someone asks how an answer was reached."
       />
 
-      <ol className="space-y-0 border-l border-border-default pl-4">
-        {activity.map((event) => {
+      <ol data-tour="activity.timeline" className="space-y-0 border-l border-border-default pl-4">
+        {activity.map((event, eventIndex) => {
           const Icon = actorIcon[event.actor];
           return (
-            <li key={event.id} className="relative pb-5">
+            <li
+              key={event.id}
+              data-tour={eventIndex === 0 ? "activity.event" : undefined}
+              className="relative pb-5"
+            >
               <span
                 aria-hidden
                 className="absolute -left-[1.4rem] top-0.5 grid size-5 place-items-center rounded-full border border-border-default bg-surface"

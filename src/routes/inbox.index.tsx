@@ -71,6 +71,7 @@ function RequestInbox() {
   return (
     <div className="space-y-6">
       <PageHeader
+        tourId="inbox.header"
         title="Requests"
         description="Everything that came in by email, telephone or the client portal, matched to a Mandant and classified."
       />
@@ -82,6 +83,7 @@ function RequestInbox() {
           </label>
           <Input
             id="request-search"
+            data-tour="inbox.search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search subject, reference or Mandant number"
@@ -115,7 +117,10 @@ function RequestInbox() {
           description="Clear the search box or choose a different status to see the rest of the inbox."
         />
       ) : (
-        <div className="overflow-x-auto rounded-md border border-border-default bg-surface">
+        <div
+          data-tour="inbox.list"
+          className="overflow-x-auto rounded-md border border-border-default bg-surface"
+        >
           <table className="w-full min-w-[46rem] border-collapse text-left text-sm">
             <caption className="sr-only">Client requests, newest first</caption>
             <thead>
@@ -138,7 +143,7 @@ function RequestInbox() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((request) => {
+              {filtered.map((request, rowIndex) => {
                 const client = clientById(request.clientId);
                 return (
                   <tr
@@ -153,7 +158,10 @@ function RequestInbox() {
                       >
                         {request.subject}
                       </Link>
-                      <p className="type-data mt-0.5 text-text-tertiary">
+                      <p
+                        data-tour={rowIndex === 0 ? "inbox.channel" : undefined}
+                        className="type-data mt-0.5 text-text-tertiary"
+                      >
                         {request.reference} · {channelLabels[request.channel]} ·{" "}
                         {formatDateTime(request.receivedAt)}
                       </p>

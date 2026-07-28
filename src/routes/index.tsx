@@ -39,6 +39,7 @@ function Overview() {
   return (
     <div className="space-y-6">
       <PageHeader
+        tourId="overview.header"
         eyebrow={`${workspace.shortName} · ${workspace.city} · ${workspace.headcount} staff`}
         title="Today"
         description="What came in, what is blocked on missing information, and what needs a professional's signature before it leaves the firm."
@@ -52,7 +53,7 @@ function Overview() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div data-tour="overview.metrics" className="grid gap-4 sm:grid-cols-3">
         <Metric
           label="Open requests"
           value={String(open.length)}
@@ -73,6 +74,7 @@ function Overview() {
       </div>
 
       <Panel
+        tourId="overview.attention"
         title="Waiting for you"
         description="Drafts the assistant has prepared. Each one names what it is unsure about."
       >

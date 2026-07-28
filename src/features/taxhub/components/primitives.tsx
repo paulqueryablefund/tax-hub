@@ -11,6 +11,7 @@ import {
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { useTaxhub } from "../use-taxhub";
+import { AreaHelpButton } from "../tour/tour-help-button";
 import type {
   Citation,
   Confidence,
@@ -23,22 +24,39 @@ export function PageHeader({
   description,
   actions,
   eyebrow,
+  tourId,
+  descriptionTourId,
 }: {
   title: string;
   description?: string;
   actions?: ReactNode;
   eyebrow?: string;
+  /** Tour anchor, `area.element`. Also enables the "?" re-entry control. */
+  tourId?: string;
+  /** Optional separate anchor for the derived description line. */
+  descriptionTourId?: string;
 }) {
   return (
-    <header className="flex flex-col gap-3 border-b border-border-default pb-5 sm:flex-row sm:items-end sm:justify-between">
+    <header
+      data-tour={tourId}
+      className="flex flex-col gap-3 border-b border-border-default pb-5 sm:flex-row sm:items-end sm:justify-between"
+    >
       <div className="min-w-0">
         {eyebrow ? <p className="type-label mb-1.5">{eyebrow}</p> : null}
         <h1 className="type-page-title text-text-primary">{title}</h1>
         {description ? (
-          <p className="mt-1.5 max-w-2xl text-sm text-text-secondary">{description}</p>
+          <p
+            data-tour={descriptionTourId}
+            className="mt-1.5 max-w-2xl text-sm text-text-secondary"
+          >
+            {description}
+          </p>
         ) : null}
       </div>
-      {actions ? <div className="flex shrink-0 flex-wrap gap-2">{actions}</div> : null}
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
+        {actions}
+        {tourId ? <AreaHelpButton anchor={tourId} /> : null}
+      </div>
     </header>
   );
 }
@@ -49,15 +67,19 @@ export function Panel({
   actions,
   children,
   className,
+  tourId,
 }: {
   title?: string;
   description?: string;
   actions?: ReactNode;
   children: ReactNode;
   className?: string;
+  /** Tour anchor, `area.element`. */
+  tourId?: string;
 }) {
   return (
     <section
+      data-tour={tourId}
       className={cn(
         "rounded-md border border-border-default bg-surface shadow-[0_1px_2px_oklch(0.235_0.018_255/0.05)]",
         className,
