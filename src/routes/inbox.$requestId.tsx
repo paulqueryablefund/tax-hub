@@ -73,11 +73,13 @@ function RequestDetail() {
       </nav>
 
       <PageHeader
+        tourId="request.header"
+        descriptionTourId="request.summary"
         eyebrow={`${client.name} · Mandant ${client.mandantNumber}`}
         title={request.subject}
         description={request.summary}
         actions={
-          <>
+          <div data-tour="request.actions" className="flex flex-wrap gap-2">
             {request.intake.length > 0 ? (
               <Button asChild variant="outline">
                 <Link to="/intake/$requestId" params={{ requestId: request.id }}>
@@ -94,7 +96,7 @@ function RequestDetail() {
                 </Link>
               </Button>
             ) : null}
-          </>
+          </div>
         }
       />
 
@@ -131,7 +133,10 @@ function RequestDetail() {
                       </div>
                     ) : null}
                     {answer.conflicts ? (
-                      <div className="mt-3 rounded-sm border border-source-conflict/30 bg-source-conflict-bg px-3 py-2">
+                      <div
+                        data-tour="request.conflicts"
+                        className="mt-3 rounded-sm border border-source-conflict/30 bg-source-conflict-bg px-3 py-2"
+                      >
                         <p className="type-label mb-1 text-source-conflict">Conflicting sources</p>
                         <p className="text-sm">{answer.conflicts.note}</p>
                         <div className="mt-2">
@@ -142,7 +147,7 @@ function RequestDetail() {
                         </div>
                       </div>
                     ) : null}
-                    <div className="mt-3">
+                    <div data-tour="request.citations" className="mt-3">
                       <CitationList citations={answer.citations} />
                     </div>
                   </article>
@@ -176,7 +181,11 @@ function RequestDetail() {
             />
           </Panel>
 
-          <Panel title="Missing information" description="Blocking the first useful output.">
+          <Panel
+            tourId="request.open-points"
+            title="Missing information"
+            description="Blocking the first useful output."
+          >
             {missing.length === 0 ? (
               <p className="text-sm text-text-secondary">
                 Nothing outstanding. Every required intake item has been recorded.

@@ -85,11 +85,12 @@ function Knowledge() {
   return (
     <div className="space-y-6">
       <PageHeader
+        tourId="knowledge.header"
         title="Knowledge"
         description="Ask how this firm does something. The assistant retrieves passages from your library, and the answer is assembled sentence by sentence from those passages only. If nothing covers the question, it says so."
       />
 
-      <Panel>
+      <Panel tourId="knowledge.query">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -198,7 +199,7 @@ function Knowledge() {
       ) : null}
 
       {phase === "nothing" ? (
-        <Panel title="No answer">
+        <Panel tourId="knowledge.refusal" title="No answer">
           <p className="text-sm">
             {failure ??
               result?.refusal?.reason ??
@@ -219,10 +220,13 @@ function Knowledge() {
       {phase === "answered" && result?.answer ? (
         <div className="space-y-4">
           <Panel
+            tourId="knowledge.answer"
             title="Answer"
             description="Assembled on the server from the passages listed below. Any sentence without a passage behind it was discarded before you saw this."
           >
-            <ConfidenceBadge confidence={result.answer.confidence} withExplanation />
+            <span data-tour="knowledge.confidence" className="inline-block">
+              <ConfidenceBadge confidence={result.answer.confidence} withExplanation />
+            </span>
             <p className="mt-3 text-sm leading-relaxed">{result.answer.answer}</p>
 
             {result.answer.caveats.length ? (
@@ -244,7 +248,7 @@ function Knowledge() {
               </div>
             ) : null}
 
-            <div className="mt-4">
+            <div data-tour="knowledge.citations" className="mt-4">
               <CitationList citations={result.answer.citations} />
             </div>
 

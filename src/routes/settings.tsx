@@ -1,6 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { KeyValue, PageHeader, Panel } from "@/features/taxhub/components/primitives";
+import { MICROCOPY } from "@/features/taxhub/tour/tour-content";
+import { useTour } from "@/features/taxhub/tour/tour-provider";
 import { useTaxhub, useTaxhubActions } from "@/features/taxhub/use-taxhub";
 
 export const Route = createFileRoute("/settings")({
@@ -25,15 +29,17 @@ export const Route = createFileRoute("/settings")({
 function Settings() {
   const { users, workspace } = useTaxhub();
   const { resetDemonstration } = useTaxhubActions();
+  const tour = useTour();
 
   return (
     <div className="space-y-6">
       <PageHeader
+        tourId="settings.header"
         title="Settings"
         description="Who may approve what, and which systems this workspace talks to."
       />
 
-      <Panel title="Workspace">
+      <Panel tourId="settings.session" title="Workspace">
         <KeyValue
           items={[
             { label: "Firm", value: workspace.firmName },
@@ -48,6 +54,7 @@ function Settings() {
       </Panel>
 
       <Panel
+        tourId="settings.rights"
         title="Approval rights"
         description="Only these roles may release correspondence to a client."
       >
@@ -72,7 +79,11 @@ function Settings() {
         </ul>
       </Panel>
 
-      <Panel title="Integrations" description="Nothing below is connected in this prototype.">
+      <Panel
+        tourId="settings.integrations"
+        title="Integrations"
+        description="Nothing below is connected in this prototype."
+      >
         <ul className="space-y-2 text-sm">
           {[
             ["Practice system export", "Copy to clipboard only. No direct connection."],
@@ -96,7 +107,7 @@ function Settings() {
         </ul>
       </Panel>
 
-      <Panel title="Demonstration">
+      <Panel tourId="settings.reset" title="Demonstration">
         <p className="text-sm text-text-secondary">
           Reset the workspace to its starting state before a demonstration. Approvals, edits and
           activity entries you created are discarded.
@@ -114,6 +125,23 @@ function Settings() {
             Workspace restored to its starting state.
           </p>
         ) : null}
+      </Panel>
+
+      <Panel tourId="settings.tour-controls" title="Guided help">
+        <div className="flex items-center justify-between gap-4">
+          <Label htmlFor="guided-help" className="text-sm font-medium">
+            {MICROCOPY.globalToggle}
+          </Label>
+          <Switch
+            id="guided-help"
+            checked={tour.hydrated ? !tour.state.globalOff : true}
+            onCheckedChange={(checked) => tour.setGlobalOff(!checked)}
+          />
+        </div>
+        <p className="mt-2 text-xs text-text-secondary">{MICROCOPY.globalOffHelp}</p>
+        <Button asChild variant="outline" className="mt-3">
+          <Link to="/tour">{MICROCOPY.navLabel}</Link>
+        </Button>
       </Panel>
     </div>
   );

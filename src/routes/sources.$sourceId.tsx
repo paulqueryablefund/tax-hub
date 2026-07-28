@@ -68,6 +68,7 @@ function SourceDetail() {
       </nav>
 
       <PageHeader
+        tourId="sources.detail-header"
         eyebrow={source.publisher}
         title={source.title}
         description={source.note}
@@ -137,7 +138,7 @@ function SourceDetail() {
         title="Indexed passages"
         description="These are the units an answer can cite. A passage arriving from a citation link is highlighted."
       >
-        <ul className="space-y-3">
+        <ul data-tour="sources.passages" className="space-y-3">
           {source.passages.map((p) => {
             const focused = p.id === focusedPassage;
             return (
@@ -181,6 +182,7 @@ function SourceDetail() {
 
       {relations.length ? (
         <Panel
+          tourId="sources.supersession"
           title="Stated relationships to other documents"
           description="Recorded in the direction the documents themselves state. A target outside this library is named, not linked."
         >

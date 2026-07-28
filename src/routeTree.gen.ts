@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TourRouteImport } from './routes/tour'
 import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
@@ -24,6 +25,11 @@ import { Route as IntakeRequestIdRouteImport } from './routes/intake.$requestId'
 import { Route as InboxRequestIdRouteImport } from './routes/inbox.$requestId'
 import { Route as DraftsDraftIdRouteImport } from './routes/drafts.$draftId'
 
+const TourRoute = TourRouteImport.update({
+  id: '/tour',
+  path: '/tour',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SourcesRoute = SourcesRouteImport.update({
   id: '/sources',
   path: '/sources',
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/knowledge': typeof KnowledgeRoute
   '/settings': typeof SettingsRoute
   '/sources': typeof SourcesRouteWithChildren
+  '/tour': typeof TourRoute
   '/drafts/$draftId': typeof DraftsDraftIdRoute
   '/inbox/$requestId': typeof InboxRequestIdRoute
   '/intake/$requestId': typeof IntakeRequestIdRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/activity': typeof ActivityRoute
   '/knowledge': typeof KnowledgeRoute
   '/settings': typeof SettingsRoute
+  '/tour': typeof TourRoute
   '/drafts/$draftId': typeof DraftsDraftIdRoute
   '/inbox/$requestId': typeof InboxRequestIdRoute
   '/intake/$requestId': typeof IntakeRequestIdRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/knowledge': typeof KnowledgeRoute
   '/settings': typeof SettingsRoute
   '/sources': typeof SourcesRouteWithChildren
+  '/tour': typeof TourRoute
   '/drafts/$draftId': typeof DraftsDraftIdRoute
   '/inbox/$requestId': typeof InboxRequestIdRoute
   '/intake/$requestId': typeof IntakeRequestIdRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/settings'
     | '/sources'
+    | '/tour'
     | '/drafts/$draftId'
     | '/inbox/$requestId'
     | '/intake/$requestId'
@@ -164,6 +174,7 @@ export interface FileRouteTypes {
     | '/activity'
     | '/knowledge'
     | '/settings'
+    | '/tour'
     | '/drafts/$draftId'
     | '/inbox/$requestId'
     | '/intake/$requestId'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/settings'
     | '/sources'
+    | '/tour'
     | '/drafts/$draftId'
     | '/inbox/$requestId'
     | '/intake/$requestId'
@@ -197,11 +209,19 @@ export interface RootRouteChildren {
   KnowledgeRoute: typeof KnowledgeRoute
   SettingsRoute: typeof SettingsRoute
   SourcesRoute: typeof SourcesRouteWithChildren
+  TourRoute: typeof TourRoute
   IntakeRequestIdRoute: typeof IntakeRequestIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tour': {
+      id: '/tour'
+      path: '/tour'
+      fullPath: '/tour'
+      preLoaderRoute: typeof TourRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sources': {
       id: '/sources'
       path: '/sources'
@@ -349,6 +369,7 @@ const rootRouteChildren: RootRouteChildren = {
   KnowledgeRoute: KnowledgeRoute,
   SettingsRoute: SettingsRoute,
   SourcesRoute: SourcesRouteWithChildren,
+  TourRoute: TourRoute,
   IntakeRequestIdRoute: IntakeRequestIdRoute,
 }
 export const routeTree = rootRouteImport

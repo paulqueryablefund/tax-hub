@@ -61,6 +61,7 @@ function GuidedIntake() {
       </nav>
 
       <PageHeader
+        tourId="intake.header"
         eyebrow={`${client.name} · Mandant ${client.mandantNumber}`}
         title="Guided intake"
         description="These are the only facts this case needs. Each one names the rule or handbook passage that requires it, so nobody has to guess and nobody asks the client twice."
@@ -81,6 +82,7 @@ function GuidedIntake() {
       ) : (
         <>
           <div
+            data-tour="intake.progress"
             className="rounded-md border border-border-default bg-surface px-4 py-3"
             role="status"
             aria-live="polite"
@@ -108,7 +110,7 @@ function GuidedIntake() {
 
           <ol className="space-y-3">
             {request.intake.map((field, i) => (
-              <li key={field.id}>
+              <li key={field.id} data-tour={i === 0 ? "intake.field" : undefined}>
                 <IntakeItem
                   index={i + 1}
                   field={field}
@@ -178,13 +180,20 @@ function IntakeItem({
             ) : null}
           </label>
           {field.help ? (
-            <p id={`help-${field.id}`} className="mt-0.5 text-xs text-text-secondary">
+            <p
+              id={`help-${field.id}`}
+              data-tour="intake.help"
+              className="mt-0.5 text-xs text-text-secondary"
+            >
               {field.help}
             </p>
           ) : null}
 
           {field.status === "uncertain" ? (
-            <p className="mt-2 rounded-sm bg-ai-uncertain-bg px-2 py-1 text-xs text-ai-uncertain">
+            <p
+              data-tour="intake.uncertain"
+              className="mt-2 rounded-sm bg-ai-uncertain-bg px-2 py-1 text-xs text-ai-uncertain"
+            >
               Recorded but not evidenced. The reply will ask the client to confirm this in writing.
             </p>
           ) : null}
@@ -225,7 +234,10 @@ function IntakeItem({
           ) : null}
 
           {field.requiredBy ? (
-            <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-text-secondary">
+            <p
+              data-tour="intake.evidence"
+              className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-text-secondary"
+            >
               <span>Required because of</span>
               <CitationChip citation={field.requiredBy} index={index} />
             </p>

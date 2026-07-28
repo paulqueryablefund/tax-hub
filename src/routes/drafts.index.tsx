@@ -40,6 +40,7 @@ function DraftList() {
   return (
     <div className="space-y-6">
       <PageHeader
+        tourId="drafts.header"
         title="Drafts"
         description="The first useful output for each case. Every external message is held here until someone with signing authority approves it."
       />
@@ -51,7 +52,7 @@ function DraftList() {
           description="Drafts appear once a case has enough information for a first useful output."
         />
       ) : (
-        <ul className="space-y-3">
+        <ul data-tour="drafts.list" className="space-y-3">
           {drafts.map((draft) => (
             <li
               key={draft.id}

@@ -76,13 +76,17 @@ function DraftReview() {
       </nav>
 
       <PageHeader
+        tourId="drafts.detail-header"
         eyebrow={request ? `${request.reference} · to ${draft.recipient}` : draft.recipient}
         title={draft.title}
         description={`Prepared ${formatDateTime(draft.generatedAt)}. Nothing has been sent.`}
       />
 
       {!actor.canApprove ? (
-        <div className="rounded-md border border-human-review-required/30 bg-human-review-required-bg px-4 py-3 text-sm text-human-review-required">
+        <div
+          data-tour="drafts.review-handoff"
+          className="rounded-md border border-human-review-required/30 bg-human-review-required-bg px-4 py-3 text-sm text-human-review-required"
+        >
           You are signed in as {actor.name} ({actor.role}) and cannot approve outgoing client
           correspondence. You can edit the draft and hand it to {approver.name}.
         </div>
@@ -108,6 +112,7 @@ function DraftReview() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-4">
           <Panel
+            tourId="drafts.review-sections"
             title={draft.subject}
             description={draft.isExternal ? "This message leaves the firm." : "Internal only."}
           >
@@ -164,14 +169,14 @@ function DraftReview() {
         </div>
 
         <div className="space-y-4">
-          <Panel title="Before you approve">
+          <Panel tourId="drafts.review-open-points" title="Before you approve">
             <ConfidenceBadge confidence={draft.confidence} withExplanation />
             <div className="mt-3">
               <CaveatList caveats={draft.openQuestions} />
             </div>
           </Panel>
 
-          <Panel title="Decision">
+          <Panel tourId="drafts.review-decision" title="Decision">
             {draft.status !== "draft" ? (
               <p className="text-sm text-text-secondary">
                 This draft has been decided. Reopen the request to prepare a new version.

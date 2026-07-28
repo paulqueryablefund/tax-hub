@@ -63,6 +63,7 @@ function SourceLibrary() {
   return (
     <div className="space-y-6">
       <PageHeader
+        tourId="sources.header"
         title="Sources"
         description="The assistant answers from these documents and nothing else. A document that is superseded is kept for the audit trail but excluded from answers."
         actions={<AddSourceDialog />}
@@ -77,7 +78,10 @@ function SourceLibrary() {
         </div>
       ) : null}
 
-      <div className="overflow-x-auto rounded-md border border-border-default bg-surface">
+      <div
+        data-tour="sources.list"
+        className="overflow-x-auto rounded-md border border-border-default bg-surface"
+      >
         <table className="w-full min-w-[52rem] border-collapse text-left text-sm">
           <caption className="sr-only">Source library</caption>
           <thead>
@@ -100,7 +104,7 @@ function SourceLibrary() {
             </tr>
           </thead>
           <tbody>
-            {sources.map((source) => (
+            {sources.map((source, rowIndex) => (
               <tr
                 key={source.id}
                 className="border-b border-border-subtle last:border-0 hover:bg-subtle"
@@ -115,13 +119,20 @@ function SourceLibrary() {
                   </Link>
                   <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-text-secondary">
                     {source.publisher}
-                    {source.isFictional ? <FictionalBadge /> : null}
+                    {source.isFictional ? (
+                      <span data-tour="sources.fictional">
+                        <FictionalBadge />
+                      </span>
+                    ) : null}
                   </p>
                 </td>
                 <td className="px-4 py-3 align-top">{kindLabels[source.kind]}</td>
                 <td className="px-4 py-3 align-top">{visibilityLabels[source.visibility]}</td>
                 <td className="type-data px-4 py-3 align-top">{formatDate(source.lastReviewed)}</td>
-                <td className="px-4 py-3 align-top">
+                <td
+                  className="px-4 py-3 align-top"
+                  data-tour={rowIndex === 0 ? "sources.health" : undefined}
+                >
                   <SourceHealthBadge health={source.health} />
                 </td>
               </tr>
