@@ -124,7 +124,7 @@ function Knowledge() {
     setFailure(null);
     setPhase("searching");
     askKnowledge.mutate(
-      { question: q, userId: actor.id },
+      { question: q },
       {
         onSuccess: (res) => {
           setResult(res);
