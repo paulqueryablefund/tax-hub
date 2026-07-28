@@ -120,6 +120,7 @@ export function useTaxhubActions() {
       detail: string;
       requestId?: string;
       sourceIds?: string[];
+      decision?: "approved" | "rejected" | "corrected" | "escalated";
     }) => record({ data }),
     onSuccess: invalidate,
   });

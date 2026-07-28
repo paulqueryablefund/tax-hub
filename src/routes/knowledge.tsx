@@ -194,6 +194,7 @@ function Knowledge() {
                     action: "Answer reported as incorrect",
                     detail: `Flagged the answer to "${entry.prompt}" for review by a Steuerberater.`,
                     sourceIds: entry.answer.citations.map((c) => c.sourceId),
+                    decision: "corrected",
                   });
                 }}
               >
