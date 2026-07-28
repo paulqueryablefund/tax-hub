@@ -9,7 +9,7 @@ import {
   saveIntakeField,
   setDraftStatus,
 } from "./api/taxhub.functions";
-import type { RequestOverview, TaxhubSnapshot } from "./types";
+import type { KnowledgeEntry, RequestOverview, TaxhubSnapshot } from "./types";
 
 export const taxhubQueryKey = ["taxhub", "snapshot"] as const;
 
@@ -32,6 +32,26 @@ export function useTaxhub() {
   return withLookups(data);
 }
 
+/**
+ * Deterministic lexical match against the workspace's recorded questions. This
+ * is where real retrieval would plug in; it never invents an answer.
+ */
+function matchKnowledge(entries: KnowledgeEntry[], query: string): KnowledgeEntry | null {
+  const q = query.toLowerCase();
+  if (!q.trim()) return null;
+  const scored = entries
+    .map((entry) => {
+      const terms = entry.prompt
+        .toLowerCase()
+        .split(/\W+/)
+        .filter((t) => t.length > 3);
+      return { entry, hits: terms.filter((t) => q.includes(t)).length };
+    })
+    .sort((a, b) => b.hits - a.hits);
+  if (!scored.length || scored[0].hits < 2) return null;
+  return scored[0].entry;
+}
+
 function withLookups(snapshot: TaxhubSnapshot) {
   return {
     ...snapshot,
@@ -42,6 +62,7 @@ function withLookups(snapshot: TaxhubSnapshot) {
     requestById: (id: string) => snapshot.requests.find((r) => r.id === id),
     draftById: (id: string) => snapshot.drafts.find((d) => d.id === id),
     overviewFor: (requestId: string) => snapshot.overview[requestId] ?? emptyOverview(requestId),
+    findKnowledgeEntry: (query: string) => matchKnowledge(snapshot.knowledge, query),
   };
 }
 
