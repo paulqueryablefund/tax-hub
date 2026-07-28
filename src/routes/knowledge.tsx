@@ -401,7 +401,10 @@ function Knowledge() {
                         {r.raw?.trgm.toFixed(3) ?? "—"} · anchor {r.raw?.anchor ?? "—"}
                       </span>
                     ) : null}
-                    <span className="w-full text-xs text-text-secondary">
+                    <span
+                      lang={r.exclusionReason ? undefined : "de"}
+                      className="w-full text-xs text-text-secondary"
+                    >
                       {r.exclusionReason ?? r.text.slice(0, 220)}
                       {!r.exclusionReason && r.text.length > 220 ? "…" : ""}
                     </span>
