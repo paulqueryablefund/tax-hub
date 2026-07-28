@@ -227,6 +227,7 @@ export function CitationList({
   citations: Citation[];
   heading?: string;
 }) {
+  const { sourceById } = useTaxhub();
   if (!citations.length) {
     return (
       <p className="text-sm text-text-secondary">
@@ -240,8 +241,14 @@ export function CitationList({
       <ol className="space-y-2">
         {citations.map((citation, i) => {
           const source = sourceById(citation.sourceId);
-          const passage = source?.passages.find((p) => p.id === citation.passageId);
-          if (!source) return null;
+          if (!source) {
+            return (
+              <li key={`${citation.sourceId}-${citation.passageId}-${i}`}>
+                <BrokenCitation id={citation.sourceId} />
+              </li>
+            );
+          }
+          const passage = source.passages.find((p) => p.id === citation.passageId);
           return (
             <li
               key={`${citation.sourceId}-${citation.passageId}-${i}`}
@@ -257,7 +264,12 @@ export function CitationList({
                   <span className="type-label mb-1 block">{passage.locator}</span>
                   {passage.text}
                 </blockquote>
-              ) : null}
+              ) : (
+                <p className="mt-2 text-xs font-medium text-status-danger">
+                  This citation points to passage {citation.passageId}, which is no longer in the
+                  source. Do not rely on this statement until it is re-checked.
+                </p>
+              )}
               <p className="mt-2 text-xs text-text-secondary">
                 <span className="font-medium">Why this passage: </span>
                 {citation.reason}
@@ -271,6 +283,8 @@ export function CitationList({
 }
 
 export function CaveatList({ caveats }: { caveats: string[] }) {
+  if (!caveats.length) return null;
+  return (
   if (!caveats.length) return null;
   return (
     <div className="rounded-sm border border-ai-uncertain/30 bg-ai-uncertain-bg px-3 py-2">
