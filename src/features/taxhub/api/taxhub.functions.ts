@@ -268,12 +268,13 @@ export const setSessionUser = createServerFn({ method: "POST" })
   });
 
 /**
- * Live retrieval over the corpus. The caller sends a question and who is
- * asking; the visibility tier is resolved here, never trusted from the client.
+ * Live retrieval over the corpus. The caller sends only a question. Who is
+ * asking is read from the stored session, exactly as setDraftStatus does: a
+ * caller cannot name a user and be served that user's visibility tier.
  */
 export const askKnowledge = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
-    z.object({ question: z.string().min(1).max(500), userId: z.string() }).parse(data),
+    z.object({ question: z.string().min(1).max(500) }).parse(data),
   )
   .handler(async ({ data }): Promise<KnowledgeResult> => {
     const { admin } = await import("./writes.server");
@@ -284,7 +285,7 @@ export const askKnowledge = createServerFn({ method: "POST" })
     const { data: user } = await db
       .from("app_users")
       .select("role")
-      .eq("id", data.userId)
+      .eq("is_current_user", true)
       .maybeSingle();
 
     return run(data.question, resolveVisibility(user?.role));
