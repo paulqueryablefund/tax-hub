@@ -10,8 +10,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { currentUserId, userById, workspace } from "../data/people";
-import { useTaxhubState } from "../store";
+import { useTaxhub } from "../use-taxhub";
 
 const nav = [
   { to: "/", label: "Overview", icon: LayoutDashboard, exact: true },
@@ -25,8 +24,8 @@ const nav = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { requests } = useTaxhubState();
-  const user = userById(currentUserId)!;
+  const { requests, workspace, currentUser } = useTaxhub();
+  const user = currentUser;
   const reviewCount = requests.filter((r) => r.status === "ready_for_review").length;
 
   return (
