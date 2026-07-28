@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Inbox, ShieldCheck, UserCheck } from "lucide-react";
+import { ArrowRight, Inbox, ShieldCheck, UserCheck, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   EmptyState,
@@ -38,6 +39,8 @@ function Overview() {
 
   return (
     <div className="space-y-6">
+      <SharedInstanceNotice />
+
       <PageHeader
         tourId="overview.header"
         eyebrow={`${workspace.shortName} · ${workspace.city} · ${workspace.headcount} staff`}
