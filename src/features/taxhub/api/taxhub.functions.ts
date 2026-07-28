@@ -231,6 +231,43 @@ export const resetDemo = createServerFn({ method: "POST" }).handler(async () => 
 });
 
 /**
+ * Demonstration control only. There is no authentication in this prototype;
+ * the "signed-in" user is a single stored flag on app_users, and every
+ * server-side authority check reads that flag rather than anything the
+ * browser sends. Switching therefore changes what the server permits.
+ */
+export const setSessionUser = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => z.object({ userId: z.string() }).parse(data))
+  .handler(async ({ data }) => {
+    const { admin } = await import("./writes.server");
+    const db = await admin();
+
+    const { data: user, error: readError } = await db
+      .from("app_users")
+      .select("id, name, role, can_approve")
+      .eq("id", data.userId)
+      .maybeSingle();
+    if (readError) throw new Error(readError.message);
+    if (!user) throw new Error("Unknown user");
+
+    const { error: clearError } = await db
+      .from("app_users")
+      .update({ is_current_user: false })
+      .eq("is_current_user", true);
+    if (clearError) throw new Error(clearError.message);
+
+    const { error } = await db
+      .from("app_users")
+      .update({ is_current_user: true })
+      .eq("id", user.id);
+    if (error) throw new Error(error.message);
+
+    // Deliberately not written to activity_events: that table is the audit
+    // trail of client work, not a log of demonstration controls.
+    return { ok: true, name: user.name, role: user.role, canApprove: user.can_approve };
+  });
+
+/**
  * Live retrieval over the corpus. The caller sends a question and who is
  * asking; the visibility tier is resolved here, never trusted from the client.
  */
