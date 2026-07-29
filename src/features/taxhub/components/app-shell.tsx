@@ -21,7 +21,6 @@ import { useTaxhub } from "../use-taxhub";
 import { TourProvider, useTour } from "../tour/tour-provider";
 import { WORKFLOW_ORDER } from "../tour/tour-content";
 import { Announcer } from "./announcer";
-import { RoleSwitcher } from "./role-switcher";
 
 const nav = [
   { to: "/", label: "Overview", icon: LayoutDashboard, exact: true, tour: "nav.overview" },
