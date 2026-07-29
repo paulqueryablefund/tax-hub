@@ -103,7 +103,7 @@ export function Panel({
 
 /** One chip geometry for every status, confidence and health badge. */
 const chipBase =
-  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium tracking-[0.005em]";
+  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium tracking-[0.005em] whitespace-nowrap [overflow-wrap:normal]";
 
 const statusMeta: Record<RequestStatus, { label: string; className: string }> = {
   new: { label: "New", className: "bg-status-information-bg text-status-information" },
