@@ -1,3 +1,13 @@
-Remove the standalone `<p className="hidden ...">Demonstration control · signed in as</p>` block from `src/features/taxhub/components/app-shell.tsx` (currently lines 127-129). The compact `<RoleSwitcher />` already renders the same label above its select, so the duplicate standalone line is redundant and makes the footer taller than needed.
+Reduce the sidebar "Demonstration control · signed in as" label size.
 
-No other files change.
+Current state
+- The compact role switcher in the sidebar renders the label at `text-[10px]` (`src/features/taxhub/components/role-switcher.tsx`, line 44).
+- This is the text the user wants smaller.
+
+Change
+- Lower the label font size from `text-[10px]` to `text-[9px]`.
+- Keep the uppercase tracking and muted sidebar color so it remains readable and consistent with the high-ticket navy sidebar design.
+- No other UI copy or layout changes.
+
+Files affected
+- `src/features/taxhub/components/role-switcher.tsx`
