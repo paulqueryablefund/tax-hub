@@ -55,7 +55,7 @@ export function RoleSwitcher({ compact = false }: { compact?: boolean }) {
         className={cn(
           "mt-1.5 w-full rounded-sm border px-2 py-1.5 text-xs",
           compact
-            ? "border-sidebar-border bg-sidebar-elevated text-sidebar-foreground"
+            ? "border-sidebar-border bg-sidebar-elevated text-sidebar-foreground [color-scheme:dark]"
             : "border-border-default bg-surface text-text-primary",
         )}
       >
