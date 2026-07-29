@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +29,11 @@ function UnlockPage() {
   const unlock = useServerFn(unlockSite);
   const [error, setError] = useState(false);
   const [pending, setPending] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setReady(true);
+  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -81,8 +86,8 @@ function UnlockPage() {
               Those details are not correct.
             </p>
           ) : null}
-          <Button type="submit" disabled={pending} className="w-full">
-            {pending ? "Signing in…" : "Sign in"}
+          <Button type="submit" disabled={pending || !ready} className="w-full">
+            {pending ? "Signing in…" : ready ? "Sign in" : "Loading…"}
           </Button>
         </form>
 
