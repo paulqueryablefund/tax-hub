@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import taxhubMark from "@/assets/taxhub-mark.png.asset.json";
 import { useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
