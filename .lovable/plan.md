@@ -1,10 +1,8 @@
-Fix sidebar label wrapping
+The sidebar label "Demonstration control · signed in as" is currently rendered at `text-[8px]`. The user reports it is still too large and wants it 10% smaller.
 
-The label "Demonstration control · signed in as" in the compact role switcher is wrapping to two lines inside the 240px sidebar (with 20px horizontal padding). Make it render on a single line.
+## Change
+In `src/features/taxhub/components/role-switcher.tsx`, reduce the label font size from `text-[8px]` to `text-[7.2px]` (8px × 0.9), preserving `whitespace-nowrap`, uppercase tracking, and color tokens.
 
-Changes:
-- In `src/features/taxhub/components/role-switcher.tsx`, add `whitespace-nowrap` to the `<label>` and reduce its font size from 9px to 8px.
-- Optionally tighten `tracking-[0.05em]` to `tracking-[0.03em]` to recover a few pixels if needed.
-- Verify in the preview that the label stays on one line and the select dropdown below it is not clipped.
-
-No other UI text or functionality changes.
+## Verification
+- Inspect the sidebar in the preview to confirm the label is visibly smaller and remains on one line.
+- Confirm no other sidebar elements are affected.
