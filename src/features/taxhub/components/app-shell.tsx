@@ -123,11 +123,8 @@ function AppChrome({ children }: { children: ReactNode }) {
             </ul>
           </nav>
 
-          <div className="mt-auto border-t border-sidebar-border pt-4">
-            <RoleSwitcher compact />
-            <div className="px-3 pb-5">
-              <SignOutButton />
-            </div>
+          <div className="mt-auto border-t border-sidebar-border px-3 pb-5 pt-4">
+            <SignOutButton />
           </div>
         </aside>
 
