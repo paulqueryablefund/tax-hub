@@ -98,14 +98,20 @@ function WelcomeModal({ variant }: { variant: "first" | "returning" }) {
         {first ? (
           <div className="mt-4">
             <p className="type-label mb-2">Areas</p>
-            <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+            <ul className="flex flex-wrap gap-1.5">
               {ALL_AREAS.map((area) => (
-                <div key={area}>
-                  <dt className="text-sm font-medium">{AREA_NAMES[area]}</dt>
-                  <dd className="text-xs text-text-secondary">{AREA_GLOSS[area]}</dd>
-                </div>
+                <li
+                  key={area}
+                  title={AREA_GLOSS[area]}
+                  className="rounded-full border border-border-subtle bg-subtle px-2.5 py-1 text-xs text-text-secondary"
+                >
+                  {AREA_NAMES[area]}
+                </li>
               ))}
-            </dl>
+            </ul>
+            <p className="mt-2 text-xs text-text-secondary">
+              Each area explains itself the first time you open it.
+            </p>
           </div>
         ) : null}
 
