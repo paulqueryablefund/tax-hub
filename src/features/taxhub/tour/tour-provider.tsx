@@ -26,6 +26,7 @@ import {
   emptyAreaState,
   loadTourState,
   saveTourState,
+  startTourSession,
   type TourState,
 } from "./tour-state";
 
@@ -201,7 +202,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
   /* ---------------- persistence (never read during render) -------- */
 
   useEffect(() => {
-    setState(loadTourState());
+    setState(startTourSession(loadTourState()));
     setHydrated(true);
   }, []);
 
