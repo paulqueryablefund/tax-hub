@@ -1,7 +1,10 @@
-The role switcher dropdown in the sidebar is being cut off because the option text includes `Katharina Brandt — Partner (may approve)`. The `(may approve)` / `(may not approve)` suffix makes the label too long for the narrow sidebar select.
+Fix sidebar label wrapping
 
-Change:
-- In `src/features/taxhub/components/role-switcher.tsx`, remove the approval suffix from the `<option>` labels so each option reads only `{user.name} — {user.role}`.
-- Keep the toast/announcement on switch unchanged, so the user still hears whether the selected role may approve outgoing correspondence.
+The label "Demonstration control · signed in as" in the compact role switcher is wrapping to two lines inside the 240px sidebar (with 20px horizontal padding). Make it render on a single line.
 
-No other UI or logic changes.
+Changes:
+- In `src/features/taxhub/components/role-switcher.tsx`, add `whitespace-nowrap` to the `<label>` and reduce its font size from 9px to 8px.
+- Optionally tighten `tracking-[0.05em]` to `tracking-[0.03em]` to recover a few pixels if needed.
+- Verify in the preview that the label stays on one line and the select dropdown below it is not clipped.
+
+No other UI text or functionality changes.
