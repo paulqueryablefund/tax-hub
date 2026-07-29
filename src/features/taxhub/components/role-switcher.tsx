@@ -62,7 +62,6 @@ export function RoleSwitcher({ compact = false }: { compact?: boolean }) {
         {users.map((user) => (
           <option key={user.id} value={user.id}>
             {user.name} — {user.role}
-            {user.canApprove ? " (may approve)" : " (may not approve)"}
           </option>
         ))}
       </select>
