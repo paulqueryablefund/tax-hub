@@ -61,13 +61,21 @@ function AppChrome({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen flex-col lg:flex-row">
         <aside className="flex shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:w-60 [&_:focus-visible]:outline-[var(--sidebar-ring)]">
           <div className="flex items-center justify-between gap-3 px-5 py-4 lg:block lg:py-6">
-            <div className="min-w-0">
-              <p className="font-serif text-[1.0625rem] leading-tight font-medium tracking-[-0.01em] text-sidebar-foreground">
-                TaxHub
-              </p>
-              <p className="truncate text-[11px] tracking-[0.04em] text-sidebar-muted uppercase">
-                {workspace.shortName}
-              </p>
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span
+                aria-hidden
+                className="grid size-9 shrink-0 place-items-center rounded-md bg-surface ring-1 ring-sidebar-border"
+              >
+                <img src={taxhubMark.url} alt="" className="size-6" />
+              </span>
+              <div className="min-w-0">
+                <p className="font-serif text-[1.0625rem] leading-tight font-medium tracking-[-0.01em] text-sidebar-foreground">
+                  TaxHub
+                </p>
+                <p className="truncate text-[11px] tracking-[0.04em] text-sidebar-muted uppercase">
+                  {workspace.shortName}
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-2.5 lg:mt-6">
               <span
