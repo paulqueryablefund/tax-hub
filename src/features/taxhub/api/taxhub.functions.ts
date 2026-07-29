@@ -49,7 +49,29 @@ export const saveIntakeField = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { admin, recordEvent } = await import("./writes.server");
+    const { validateIntakeValue } = await import("../intake-validation");
     const db = await admin();
+
+    // The field's declared type is read from the record, never from the
+    // caller, and the same validator the screen uses decides admissibility.
+    const { data: field, error: fieldError } = await db
+      .from("intake_fields")
+      .select("label, type, options")
+      .eq("request_id", data.requestId)
+      .eq("id", data.fieldId)
+      .maybeSingle();
+    if (fieldError) throw new Error(fieldError.message);
+    if (!field) throw new Error("Unknown intake item");
+
+    const verdict = validateIntakeValue(
+      field.type as never,
+      data.value,
+      (field.options as string[] | null) ?? undefined,
+    );
+    if (!verdict.ok) {
+      throw new Error(`"${field.label}" was not recorded: ${verdict.message}`);
+    }
+
     const { error } = await db
       .from("intake_fields")
       .update({
@@ -60,18 +82,11 @@ export const saveIntakeField = createServerFn({ method: "POST" })
       .eq("id", data.fieldId);
     if (error) throw new Error(error.message);
 
-    const { data: field } = await db
-      .from("intake_fields")
-      .select("label")
-      .eq("request_id", data.requestId)
-      .eq("id", data.fieldId)
-      .maybeSingle();
-
     await recordEvent({
       actor: "user",
       actorName: data.actorName,
       action: "Intake item completed",
-      detail: `Recorded a value for "${field?.label ?? data.fieldId}".`,
+      detail: `Recorded a value for "${field.label}".`,
       requestId: data.requestId,
     });
     return { ok: true };
