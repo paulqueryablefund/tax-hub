@@ -124,10 +124,6 @@ function AppChrome({ children }: { children: ReactNode }) {
             </ul>
           </nav>
 
-          <p className="hidden px-5 pb-5 text-[10px] leading-snug text-sidebar-muted lg:block">
-            Demonstration control · signed in as
-          </p>
-
           <div className="mt-auto border-t border-sidebar-border pt-4">
             <RoleSwitcher compact />
             <div className="px-3 pb-5">
