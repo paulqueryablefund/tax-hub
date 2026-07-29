@@ -1,4 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import {
   BookOpen,
   Compass,
@@ -7,10 +9,12 @@ import {
   Inbox,
   LayoutDashboard,
   Library,
+  LogOut,
   Settings,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { lockSite } from "@/lib/gate.functions";
 import { useTaxhub } from "../use-taxhub";
 import { TourProvider, useTour } from "../tour/tour-provider";
 import { WORKFLOW_ORDER } from "../tour/tour-content";
@@ -121,6 +125,9 @@ function AppChrome({ children }: { children: ReactNode }) {
 
           <div className="border-t border-border-subtle pt-3">
             <RoleSwitcher compact />
+            <div className="px-4 pb-4">
+              <SignOutButton />
+            </div>
           </div>
         </aside>
 
@@ -133,6 +140,25 @@ function AppChrome({ children }: { children: ReactNode }) {
 }
 
 /** Derived, never stored: how many of the nine area tours are complete. */
+function SignOutButton() {
+  const router = useRouter();
+  const lock = useServerFn(lockSite);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        await lock({ data: undefined });
+        await router.invalidate();
+        await router.navigate({ to: "/unlock" });
+      }}
+      className="flex w-full items-center gap-2 rounded-sm px-2.5 py-2 text-xs text-text-secondary hover:bg-sidebar-accent hover:text-text-primary"
+    >
+      <LogOut aria-hidden className="size-3.5 shrink-0" />
+      <span>Sign out of the workspace</span>
+    </button>
+  );
+}
+
 function TourNavBadge() {
   const { state, hydrated } = useTour();
   if (!hydrated) return null;

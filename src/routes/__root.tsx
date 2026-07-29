@@ -6,6 +6,8 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  redirect,
+  useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
@@ -14,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AppShell } from "../features/taxhub/components/app-shell";
 import { taxhubQueryOptions } from "../features/taxhub/use-taxhub";
+import { isUnlocked } from "../lib/gate.functions";
 
 function NotFoundComponent() {
   return (
@@ -79,7 +82,17 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  loader: ({ context }) => context.queryClient.ensureQueryData(taxhubQueryOptions),
+  // Team gate: the workspace is private, so nothing loads until the shared
+  // team credentials have been accepted on the server.
+  beforeLoad: async ({ location }) => {
+    if (location.pathname === "/unlock") return;
+    const { unlocked } = await isUnlocked();
+    if (!unlocked) throw redirect({ to: "/unlock" });
+  },
+  loader: ({ context, location }) =>
+    location.pathname === "/unlock"
+      ? null
+      : context.queryClient.ensureQueryData(taxhubQueryOptions),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -139,6 +152,16 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  if (pathname === "/unlock") {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <Outlet />
+        <Toaster position="bottom-right" />
+      </QueryClientProvider>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

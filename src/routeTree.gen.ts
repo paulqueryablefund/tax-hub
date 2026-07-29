@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UnlockRouteImport } from './routes/unlock'
 import { Route as TourRouteImport } from './routes/tour'
 import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -25,6 +26,11 @@ import { Route as IntakeRequestIdRouteImport } from './routes/intake.$requestId'
 import { Route as InboxRequestIdRouteImport } from './routes/inbox.$requestId'
 import { Route as DraftsDraftIdRouteImport } from './routes/drafts.$draftId'
 
+const UnlockRoute = UnlockRouteImport.update({
+  id: '/unlock',
+  path: '/unlock',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TourRoute = TourRouteImport.update({
   id: '/tour',
   path: '/tour',
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/sources': typeof SourcesRouteWithChildren
   '/tour': typeof TourRoute
+  '/unlock': typeof UnlockRoute
   '/drafts/$draftId': typeof DraftsDraftIdRoute
   '/inbox/$requestId': typeof InboxRequestIdRoute
   '/intake/$requestId': typeof IntakeRequestIdRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/knowledge': typeof KnowledgeRoute
   '/settings': typeof SettingsRoute
   '/tour': typeof TourRoute
+  '/unlock': typeof UnlockRoute
   '/drafts/$draftId': typeof DraftsDraftIdRoute
   '/inbox/$requestId': typeof InboxRequestIdRoute
   '/intake/$requestId': typeof IntakeRequestIdRoute
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/sources': typeof SourcesRouteWithChildren
   '/tour': typeof TourRoute
+  '/unlock': typeof UnlockRoute
   '/drafts/$draftId': typeof DraftsDraftIdRoute
   '/inbox/$requestId': typeof InboxRequestIdRoute
   '/intake/$requestId': typeof IntakeRequestIdRoute
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sources'
     | '/tour'
+    | '/unlock'
     | '/drafts/$draftId'
     | '/inbox/$requestId'
     | '/intake/$requestId'
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/settings'
     | '/tour'
+    | '/unlock'
     | '/drafts/$draftId'
     | '/inbox/$requestId'
     | '/intake/$requestId'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sources'
     | '/tour'
+    | '/unlock'
     | '/drafts/$draftId'
     | '/inbox/$requestId'
     | '/intake/$requestId'
@@ -210,11 +222,19 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SourcesRoute: typeof SourcesRouteWithChildren
   TourRoute: typeof TourRoute
+  UnlockRoute: typeof UnlockRoute
   IntakeRequestIdRoute: typeof IntakeRequestIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/unlock': {
+      id: '/unlock'
+      path: '/unlock'
+      fullPath: '/unlock'
+      preLoaderRoute: typeof UnlockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tour': {
       id: '/tour'
       path: '/tour'
@@ -370,6 +390,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SourcesRoute: SourcesRouteWithChildren,
   TourRoute: TourRoute,
+  UnlockRoute: UnlockRoute,
   IntakeRequestIdRoute: IntakeRequestIdRoute,
 }
 export const routeTree = rootRouteImport
