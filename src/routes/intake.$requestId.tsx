@@ -164,7 +164,9 @@ function IntakeItem({
   const choices =
     field.type === "select" ? (field.options ?? []) : field.type === "boolean" ? booleanOptions() : null;
   const verdict = validateIntakeValue(field.type, value, field.options);
-  const error = verdict.ok ? null : verdict.message;
+  // Only judge what the user is typing now. A value already on file is shown
+  // as recorded, not retroactively marked invalid.
+  const error = dirty && !verdict.ok ? verdict.message : null;
 
   const Icon =
     field.status === "provided"
