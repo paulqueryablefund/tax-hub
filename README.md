@@ -2,8 +2,8 @@
 
 An operating layer for German tax practices (Steuerkanzleien). It takes one thing a firm does dozens of times a week — a client asks a question — and carries it from arrival to a reply that a licensed professional has signed off, with every legal statement traced to a passage you can open.
 
-- **Live:** https://fachwerk-geist.lovable.app
-- **Repository:** https://github.com/paulqueryablefund/fachwerk-geist
+- **Live:** https://tax-hub-paul.lovable.app
+- **Repository:** https://github.com/paulqueryablefund/tax-hub
 
 > **This is a single shared demonstration workspace.** One sign-in opens it and everyone uses the same credentials, so every visitor sees and changes the same data. Inside, the product always runs as the demonstration user Miriam Radtke. If a case looks half-finished, someone was here before you: **Settings → Reset demonstration data** returns everything to the seeded baseline in one click.
 
@@ -11,7 +11,7 @@ An operating layer for German tax practices (Steuerkanzleien). It takes one thin
 - **Fictional:** the firm, its staff, its clients, their requests, and 5 uploaded firm documents. All are labelled as fictional in the interface, not only here.
 - **Mocked:** telephony, email ingestion and DATEV connectivity. Each is labelled as mocked at the point where it appears in the interface. Nothing is ever sent to anyone; "send" is a state transition in a database.
 
-The repository and the preview domain keep the working name `fachwerk-geist`. The product is TaxHub.
+The product, the repository and this document are all TaxHub. The preview domain still resolves as `tax-hub-paul.lovable.app` — that is the platform's generated hostname, not a second name for the product.
 
 Built with Claude Code driving Lovable: TanStack Start, React, Tailwind, Lovable Cloud Postgres.
 
@@ -143,7 +143,7 @@ bun install
 bun dev
 ```
 
-The application reads its database URL, anon key and edge-function configuration from environment variables supplied by Lovable Cloud; the server functions additionally require an AI gateway key, read per invocation and never cached at module scope. A clone without its own Cloud project will start and render, but it has no corpus and therefore nothing to retrieve. The database schema is under `supabase/`, and the seed is an idempotent function that also backs the "Reset demonstration data" control in Settings.
+The application reads its database URL, anon key and server-function configuration from environment variables supplied by Lovable Cloud; the server functions additionally require an AI gateway key, read per invocation and never cached at module scope. A clone without its own Cloud project will start and render, but it has no corpus and therefore nothing to retrieve. The database schema is under `supabase/`, and the seed is an idempotent function that also backs the "Reset demonstration data" control in Settings.
 
 `.env` is committed deliberately. It holds only the Supabase project id, the project URL and the **publishable** key — the client-side values that ship in the browser bundle regardless. There is no service-role key, no gateway key and no secret in this repository; server-side credentials live in Lovable Cloud secrets and are read per invocation.
 
@@ -154,7 +154,7 @@ For evaluation, the live link is faster and runs the same code.
 - **The corpus is 70 passages.** The engine is finished; the library is not. Ask outside the seeded topics and the intended behaviour is an honest refusal, which is correct and also a small library. Coverage is a curation cost, not an architectural one.
 - **Refusal is a threshold, not a wall.** It is scored from retrieval quality. A question adjacent to the corpus can surface weak passages at low confidence rather than refusing outright; the thresholds are tuned, and tuning them is ongoing work.
 - **The retrieval constants are tuned, not derived.** Weights and thresholds were calibrated once against a pre-stated question battery, and the before-and-after numbers are recorded. They are engineering choices with a named calibration step, not published values.
-- **The AI gateway has no public API contract.** It sits behind a single adapter file with a health canary, so a breaking change upstream is a one-file fix and an alarm rather than a silent wrong answer — but it remains an undocumented, unversioned surface.
+- **The AI gateway has no public API contract.** It sits behind a single adapter file with a health canary, so a breaking change upstream is a one-file fix and an alarm rather than a silent answer — but it remains an undocumented, unversioned surface.
 - **One case is fully wired.** The company-car case is walked end to end through every stage. Other requests in the inbox exercise the same machinery but are not carried to the same depth.
 - **A deterministic lane exists** for the scripted flagship case, so a live demonstration cannot fail on a network hiccup. It is visually labelled as the guided example, and is separate by design from the live retrieval lane that answers everything else.
 - **One shared workspace behind a single sign-in.** Repeated from the top because it is the first thing a visitor meets: everyone shares the same credentials and the same data, and Settings resets it.
