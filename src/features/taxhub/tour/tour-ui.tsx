@@ -61,22 +61,23 @@ function WelcomeModal({ variant }: { variant: "first" | "returning" }) {
   const first = variant === "first";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-text-primary/25 p-4 sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-text-primary/25 p-4">
       <div
         ref={ref}
         role="dialog"
         aria-modal="true"
         aria-labelledby="tour-welcome-title"
-        className="w-full max-w-3xl rounded-md border border-border-default bg-surface p-5 shadow-lg sm:p-6"
+        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-3xl flex-col rounded-md border border-border-default bg-surface p-5 shadow-lg sm:p-6"
       >
-        <h2 id="tour-welcome-title" className="type-page-title text-text-primary">
+        <h2 id="tour-welcome-title" className="type-page-title shrink-0 text-text-primary">
           {first ? WELCOME.title : WELCOME_RETURNING.title}
         </h2>
-        <p className="mt-3 text-sm leading-relaxed text-text-primary">
+        <div className="-mr-2 mt-3 min-h-0 flex-1 overflow-y-auto pr-2">
+        <p className="text-sm leading-relaxed text-text-primary">
           {first ? WELCOME.explanation : WELCOME_RETURNING.explanation}
         </p>
 
-        <ol className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {WORKFLOW_CHAIN.map((link, i) => (
             <li
               key={link.label}
@@ -95,28 +96,35 @@ function WelcomeModal({ variant }: { variant: "first" | "returning" }) {
         ) : null}
 
         {first ? (
-          <div className="mt-5">
+          <div className="mt-4">
             <p className="type-label mb-2">Areas</p>
-            <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+            <ul className="flex flex-wrap gap-1.5">
               {ALL_AREAS.map((area) => (
-                <div key={area}>
-                  <dt className="text-sm font-medium">{AREA_NAMES[area]}</dt>
-                  <dd className="text-xs text-text-secondary">{AREA_GLOSS[area]}</dd>
-                </div>
+                <li
+                  key={area}
+                  title={AREA_GLOSS[area]}
+                  className="rounded-full border border-border-subtle bg-subtle px-2.5 py-1 text-xs text-text-secondary"
+                >
+                  {AREA_NAMES[area]}
+                </li>
               ))}
-            </dl>
+            </ul>
+            <p className="mt-2 text-xs text-text-secondary">
+              Each area explains itself the first time you open it.
+            </p>
           </div>
         ) : null}
 
-        <p className="mt-5 rounded-sm border border-border-subtle bg-subtle px-3 py-2 text-sm text-text-primary">
+        <p className="mt-4 rounded-sm border border-border-subtle bg-subtle px-3 py-2 text-sm text-text-primary">
           {first ? WELCOME.trust : WELCOME_RETURNING.trust}
         </p>
         <p className="mt-2 text-xs text-text-secondary">
           {first ? WELCOME.demoData : WELCOME_RETURNING.demoData}
         </p>
+        </div>
 
         {first ? (
-          <div className="mt-4 flex items-start gap-2">
+          <div className="mt-4 flex shrink-0 items-start gap-2">
             <Checkbox
               id="tour-welcome-dismiss"
               checked={dontShow}
@@ -131,7 +139,7 @@ function WelcomeModal({ variant }: { variant: "first" | "returning" }) {
           </div>
         ) : null}
 
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-4 flex shrink-0 flex-wrap gap-2">
           <Button
             onClick={() => {
               closeWelcome(dontShow);
@@ -175,16 +183,18 @@ function AreaPopup({ area }: { area: AreaId }) {
         ref={ref}
         role="dialog"
         aria-labelledby={`tour-popup-${area}`}
-        className="pointer-events-auto w-full max-w-lg rounded-md border border-border-default bg-surface p-4 shadow-lg"
+        className="pointer-events-auto flex max-h-[min(70vh,32rem)] w-full max-w-lg flex-col rounded-md border border-border-default bg-surface p-4 shadow-lg"
       >
         <h2 id={`tour-popup-${area}`} className="type-section-title text-text-primary">
           {copy.title}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-text-primary">{copy.body}</p>
-        <p className="mt-2 text-sm text-text-primary">
-          <span className="font-medium">What to notice: </span>
-          {copy.notice}
-        </p>
+        <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
+          <p className="text-sm leading-relaxed text-text-primary">{copy.body}</p>
+          <p className="mt-2 text-sm text-text-primary">
+            <span className="font-medium">What to notice: </span>
+            {copy.notice}
+          </p>
+        </div>
         <div className="mt-3 flex items-center gap-2">
           <Checkbox
             id={`tour-popup-dismiss-${area}`}
