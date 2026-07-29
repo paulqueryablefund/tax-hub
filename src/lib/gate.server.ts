@@ -13,7 +13,9 @@ function sessionConfig() {
     password: process.env.SESSION_SECRET!,
     name: "taxhub-gate",
     maxAge: 60 * 60 * 24 * 30,
-    cookie: { httpOnly: true, secure: true, sameSite: "lax" as const, path: "/" },
+    // SameSite=None so the cookie also works when the workspace is viewed
+    // inside the preview iframe (a third-party context in the browser's eyes).
+    cookie: { httpOnly: true, secure: true, sameSite: "none" as const, path: "/" },
   };
 }
 
