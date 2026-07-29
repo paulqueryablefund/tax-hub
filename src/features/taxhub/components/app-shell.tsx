@@ -15,6 +15,7 @@ import {
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { lockSite } from "@/lib/gate.functions";
+import { endTourSession } from "../tour/tour-state";
 import { useTaxhub } from "../use-taxhub";
 import { TourProvider, useTour } from "../tour/tour-provider";
 import { WORKFLOW_ORDER } from "../tour/tour-content";
@@ -152,6 +153,7 @@ function SignOutButton() {
     <button
       type="button"
       onClick={async () => {
+        endTourSession();
         await lock({ data: undefined });
         await router.invalidate();
         await router.navigate({ to: "/unlock" });
