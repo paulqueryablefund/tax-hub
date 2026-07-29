@@ -58,7 +58,7 @@ function AppChrome({ children }: { children: ReactNode }) {
       </a>
 
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <aside className="flex shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:w-64 [&_:focus-visible]:outline-[var(--sidebar-ring)]">
+        <aside className="flex shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:w-60 [&_:focus-visible]:outline-[var(--sidebar-ring)]">
           <div className="flex items-center justify-between gap-3 px-5 py-4 lg:block lg:py-6">
             <div className="min-w-0">
               <p className="font-serif text-[1.0625rem] leading-tight font-medium tracking-[-0.01em] text-sidebar-foreground">
