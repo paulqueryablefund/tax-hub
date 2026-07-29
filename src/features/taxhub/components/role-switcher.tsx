@@ -41,7 +41,7 @@ export function RoleSwitcher({ compact = false }: { compact?: boolean }) {
       <label
         htmlFor={compact ? "role-switcher-shell" : "role-switcher"}
         className={cn(
-          "block text-[10px] font-medium tracking-[0.05em] uppercase",
+          "block text-[9px] font-medium tracking-[0.05em] uppercase",
           compact ? "text-sidebar-muted" : "text-text-tertiary",
         )}
       >
