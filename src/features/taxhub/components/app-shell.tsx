@@ -1,4 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import {
   BookOpen,
   Compass,
@@ -7,10 +9,12 @@ import {
   Inbox,
   LayoutDashboard,
   Library,
+  LogOut,
   Settings,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { lockSite } from "@/lib/gate.functions";
 import { useTaxhub } from "../use-taxhub";
 import { TourProvider, useTour } from "../tour/tour-provider";
 import { WORKFLOW_ORDER } from "../tour/tour-content";
@@ -121,6 +125,9 @@ function AppChrome({ children }: { children: ReactNode }) {
 
           <div className="border-t border-border-subtle pt-3">
             <RoleSwitcher compact />
+            <div className="px-4 pb-4">
+              <SignOutButton />
+            </div>
           </div>
         </aside>
 
