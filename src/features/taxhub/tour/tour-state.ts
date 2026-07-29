@@ -13,6 +13,8 @@
 import { ALL_AREAS, type AreaId } from "./tour-content";
 
 export const TOUR_STORAGE_KEY = "werkflow.tour.v1";
+/** Marks one sign-in session. Cleared on sign-out and by closing the tab. */
+export const TOUR_SESSION_KEY = "werkflow.tour.session.v1";
 export const TOUR_STATE_VERSION = 1;
 
 export type AreaTourStatus = "not_started" | "in_progress" | "completed";
@@ -97,6 +99,39 @@ export function saveTourState(state: TourState) {
   } catch {
     /* storage unavailable (private mode, quota) — the tour still runs, it
        simply forgets. Never throw from a help system. */
+  }
+}
+
+/**
+ * The welcome modal opens once per sign-in, not once per browser.
+ *
+ * On the first read of a sign-in session the `welcomeSeen` flag is cleared so
+ * the introduction is offered again. Two explicit opt-outs are respected and
+ * never overridden: "Don't show this again" (`welcomeDismissed`) and the
+ * global off switch in Settings (`globalOff`). Per-area popups and tour
+ * progress are untouched — they stay remembered across sessions.
+ */
+export function startTourSession(state: TourState): TourState {
+  if (typeof window === "undefined") return state;
+  try {
+    if (window.sessionStorage.getItem(TOUR_SESSION_KEY)) return state;
+    window.sessionStorage.setItem(TOUR_SESSION_KEY, new Date().toISOString());
+  } catch {
+    return state;
+  }
+  if (state.globalOff || state.welcomeDismissed) return state;
+  const next: TourState = { ...state, welcomeSeen: false };
+  saveTourState(next);
+  return next;
+}
+
+/** Called on sign-out so the next sign-in counts as a new session. */
+export function endTourSession() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(TOUR_SESSION_KEY);
+  } catch {
+    /* nothing to clear */
   }
 }
 
