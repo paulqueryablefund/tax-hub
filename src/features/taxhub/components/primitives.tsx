@@ -39,15 +39,15 @@ export function PageHeader({
   return (
     <header
       data-tour={tourId}
-      className="flex flex-col gap-3 border-b border-border-default pb-5 sm:flex-row sm:items-end sm:justify-between"
+      className="flex flex-col gap-4 border-b border-border-subtle pb-6 sm:flex-row sm:items-end sm:justify-between"
     >
       <div className="min-w-0">
-        {eyebrow ? <p className="type-label mb-1.5">{eyebrow}</p> : null}
+        {eyebrow ? <p className="type-label mb-2">{eyebrow}</p> : null}
         <h1 className="type-page-title text-text-primary">{title}</h1>
         {description ? (
           <p
             data-tour={descriptionTourId}
-            className="mt-1.5 max-w-2xl text-sm text-text-secondary"
+            className="mt-2 max-w-[62ch] text-sm leading-relaxed text-text-secondary"
           >
             {description}
           </p>
@@ -81,25 +81,29 @@ export function Panel({
     <section
       data-tour={tourId}
       className={cn(
-        "rounded-md border border-border-default bg-surface shadow-[0_1px_2px_oklch(0.235_0.018_255/0.05)]",
+        "rounded-lg border border-border-subtle bg-surface shadow-[0_1px_2px_oklch(0.235_0.018_255/0.04)]",
         className,
       )}
     >
       {title ? (
-        <div className="flex items-start justify-between gap-3 border-b border-border-subtle px-4 py-3">
+        <div className="flex items-start justify-between gap-3 border-b border-border-subtle px-5 py-3.5">
           <div className="min-w-0">
             <h2 className="type-section-title text-text-primary">{title}</h2>
             {description ? (
-              <p className="mt-0.5 text-xs text-text-secondary">{description}</p>
+              <p className="mt-1 text-xs leading-relaxed text-text-secondary">{description}</p>
             ) : null}
           </div>
           {actions ? <div className="flex shrink-0 gap-2">{actions}</div> : null}
         </div>
       ) : null}
-      <div className="px-4 py-4">{children}</div>
+      <div className="px-5 py-4">{children}</div>
     </section>
   );
 }
+
+/** One chip geometry for every status, confidence and health badge. */
+const chipBase =
+  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium tracking-[0.005em] whitespace-nowrap [overflow-wrap:normal]";
 
 const statusMeta: Record<RequestStatus, { label: string; className: string }> = {
   new: { label: "New", className: "bg-status-information-bg text-status-information" },
@@ -121,7 +125,7 @@ export function StatusBadge({ status }: { status: RequestStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-sm px-2 py-0.5 text-xs font-medium",
+        chipBase,
         meta.className,
       )}
     >
@@ -174,7 +178,8 @@ export function ConfidenceBadge({
     <span className="inline-flex flex-col gap-1">
       <span
         className={cn(
-          "inline-flex w-fit items-center gap-1.5 rounded-sm px-2 py-0.5 text-xs font-medium",
+          chipBase,
+          "w-fit",
           meta.className,
         )}
       >
@@ -200,7 +205,7 @@ export function SourceHealthBadge({ health }: { health: SourceHealth }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium",
+        chipBase,
         meta.className,
       )}
     >
@@ -213,7 +218,8 @@ export function FictionalBadge({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-sm border border-dashed border-border-strong px-1.5 py-0.5 text-[11px] font-medium text-text-tertiary",
+        chipBase,
+        "border border-dashed border-border-strong text-text-tertiary",
         className,
       )}
       title="Invented material used for this demonstration."
