@@ -1,51 +1,32 @@
-## Goal
+## 1 · The shared-instance notice on Overview is now factually wrong
 
-A quieter, more expensive-feeling shell: a deep navy sidebar with white characters, and page chrome (headers, panels, badges) tightened to match. No new fonts, no dark mode for content, no change to state colours or any legal/demo content.
+`src/routes/index.tsx` renders a dismissible banner claiming "There is no sign-in". That stopped being true when the team sign-in gate (`/unlock`) was added — visitors must authenticate, so the sentence contradicts the product.
 
-## 1. Tokens — one navy family, added to `src/styles.css`
+Replace the copy with something accurate and useful, keeping the same dismissible banner component and localStorage key:
 
-Add a small navy set alongside the existing paper tokens (this is the one rule change you approved):
+> **Shared workspace.** Your team signs in to one database, so everyone sees and changes the same cases — a case may already be part-way through when you arrive. You are working as Miriam Radtke. Settings returns the demonstration data to its starting state.
 
-```text
---sidebar                 oklch(0.24 0.035 255)   deep ink-navy surface
---sidebar-elevated        oklch(0.28 0.035 255)   hover / raised rows
---sidebar-foreground      oklch(0.97 0.004 250)   white characters
---sidebar-muted           oklch(0.74 0.018 250)   inactive labels, meta
---sidebar-border          oklch(0.32 0.03 255)    hairlines inside the navy
---sidebar-accent          oklch(0.33 0.045 250)   active row surface
---sidebar-ring            light ring for focus on dark
-```
+Kept: the dismiss "×", the link to Settings, the read-in-effect hydration guard. Changed: only the wording, plus a slightly tighter two-line layout (a small bold lead-in, then one sentence) so it reads as a status strip rather than a paragraph.
 
-Exposed through `@theme inline` as `bg-sidebar`, `text-sidebar-foreground`, `text-sidebar-muted`, etc., so components keep using semantic classes only. Existing state tokens (verified / stale / conflict / uncertain / review-required) are untouched.
+## 2 · The Overview tour popup is taller than the viewport
 
-## 2. Sidebar — `app-shell.tsx`
+`AREA_POPUPS.overview` in `src/features/taxhub/tour/tour-content.ts` carries a 4-line body plus a 2-line "What to notice", and the popup renders bottom-anchored with a checkbox, two buttons and a footer line. At 1050×705 the stack overflows the screen.
 
-- **Wordmark block**: "TaxHub" in Newsreader, white, with the firm short name beneath in `sidebar-muted`, separated from the nav by a hairline rather than empty space.
-- **Nav rows**: slightly taller rows, `text-sidebar-muted` at rest, white on hover with a soft `sidebar-elevated` fill.
-- **Active row**: navy-accent fill plus a 2px light rail on the left edge, white label, icon at full opacity. One clear anchor, no bold-everything.
-- **Icons**: consistent 16px, muted at rest, matching the label's state.
-- **Badges**: the review count and tour progress chips get on-navy treatments (light text on translucent fill) so they read without shouting.
-- **Bottom block**: role switcher and sign-out sit below a hairline in muted text; sign-out gets a restrained hover, not a red one.
-- **Disclaimer line**: kept verbatim, set in `sidebar-muted` at small size with generous leading.
-- **Mobile (<lg)**: same navy bar, horizontally scrolling nav — no layout change, only the palette and row treatment.
+Two changes:
 
-## 3. Page chrome — `primitives.tsx`
+**a. Shorten the Overview copy** (only Overview; the other areas keep their verbatim text):
 
-- **PageHeader**: eyebrow label in tracked small caps, serif title given a touch more air, description capped for line length, and the bottom rule softened to `border-subtle` so the page opens rather than boxes in.
-- **Panel**: slightly larger radius, hairline border, near-invisible shadow, and header rows with more consistent padding — one elevation level across the app, not three.
-- **Badges / chips**: unify padding, radius, and font size so status, confidence, and source-health chips form a family.
-- **Content column**: consistent vertical rhythm between page header and first panel.
+- title: `Overview — the firm's open work`
+- body: `The screen you start on: everything currently in flight, so you can see where a person is needed before opening a case. Nothing starts here — it points you into the case that is blocking.`
+- notice: `every count is derived from live cases, never stored, so it cannot drift out of step.`
 
-## 4. Focus and accessibility
+**b. Make the popup structurally unable to exceed the screen** — in `tour-ui.tsx`'s `AreaPopup`, constrain the dialog to `max-h-[min(70vh,…)]` with the body/notice area scrolling while the title, checkbox and buttons stay fixed. This protects every area, not just Overview.
 
-- Focus rings on navy use `--sidebar-ring` so they stay visible; ring on paper stays as is.
-- Every navy pairing checked for contrast: white characters on `--sidebar`, muted labels ≥ 4.5:1, active row ≥ 4.5:1.
-- `aria-current`, skip link, tour anchors (`data-tour`), and announcer behaviour all preserved exactly.
+## 3 · Visual check
 
-## 5. Verification
+After the edits, drive the preview with Playwright at the user's viewport (1050×705): sign in through the gate, land on Overview, screenshot the notice strip and the tour popup, and confirm the popup's bottom edge and buttons sit inside the viewport.
 
-Screenshot the shell at desktop and mobile widths, confirm the tour spotlight still aligns to sidebar anchors, and confirm no route content or copy changed.
-
-## Technical notes
-
-Files touched: `src/styles.css` (token block only, additive), `src/features/taxhub/components/app-shell.tsx`, `src/features/taxhub/components/role-switcher.tsx`, `src/features/taxhub/components/primitives.tsx`. No changes to data, server functions, database, or the tour content strings. I'll also record the amended colour rule in project memory so future work doesn't revert the navy.
+### Technical notes
+- Files touched: `src/routes/index.tsx`, `src/features/taxhub/tour/tour-content.ts`, `src/features/taxhub/tour/tour-ui.tsx`.
+- No database, server function, or tour-state change; dismissal keys and tour progress stay valid.
+- Copy stays English to match the rest of the shell; no new colours or tokens.
