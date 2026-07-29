@@ -4,6 +4,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { booleanOptions, validateIntakeValue } from "@/features/taxhub/intake-validation";
+import {
   EmptyState,
   PageHeader,
   Panel,
@@ -153,6 +161,10 @@ function IntakeItem({
   const [value, setValue] = useState(field.value ?? "");
   const [saved, setSaved] = useState(false);
   const dirty = value !== (field.value ?? "");
+  const choices =
+    field.type === "select" ? (field.options ?? []) : field.type === "boolean" ? booleanOptions() : null;
+  const verdict = validateIntakeValue(field.type, value, field.options);
+  const error = verdict.ok ? null : verdict.message;
 
   const Icon =
     field.status === "provided"
@@ -200,25 +212,60 @@ function IntakeItem({
           ) : null}
 
           <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-            <Input
-              id={`intake-${field.id}`}
-              aria-describedby={field.help ? `help-${field.id}` : undefined}
-              value={value}
-              onChange={(e) => {
-                setValue(e.target.value);
-                setSaved(false);
-              }}
-              placeholder={
-                field.type === "file"
-                  ? "File name, or note where the document is filed"
-                  : field.options
-                    ? field.options.join(" / ")
-                    : "Enter the value"
-              }
-            />
+            {choices ? (
+              <Select
+                value={value || undefined}
+                onValueChange={(next) => {
+                  setValue(next);
+                  setSaved(false);
+                }}
+              >
+                <SelectTrigger
+                  id={`intake-${field.id}`}
+                  aria-describedby={field.help ? `help-${field.id}` : undefined}
+                  className="w-full"
+                >
+                  <SelectValue placeholder="Choose an answer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {choices.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                id={`intake-${field.id}`}
+                type={field.type === "date" ? "date" : "text"}
+                inputMode={field.type === "number" ? "decimal" : undefined}
+                min={field.type === "number" ? 0 : undefined}
+                aria-invalid={error ? true : undefined}
+                aria-describedby={
+                  [field.help ? `help-${field.id}` : null, error ? `error-${field.id}` : null]
+                    .filter(Boolean)
+                    .join(" ") || undefined
+                }
+                value={value}
+                onChange={(e) => {
+                  setValue(e.target.value);
+                  setSaved(false);
+                }}
+                placeholder={
+                  field.type === "file"
+                    ? "File name, or note where the document is filed"
+                    : field.type === "number"
+                      ? "Enter a number"
+                      : field.type === "date"
+                        ? "YYYY-MM-DD"
+                        : "Enter the value"
+                }
+              />
+            )}
             <Button
               variant={dirty ? "default" : "outline"}
-              disabled={!dirty}
+              disabled={!dirty || Boolean(error)}
               onClick={() => {
                 onSave(value);
                 setSaved(true);
@@ -228,7 +275,12 @@ function IntakeItem({
               Record
             </Button>
           </div>
-          {saved ? (
+          {error ? (
+            <p id={`error-${field.id}`} role="alert" className="mt-1.5 text-xs text-status-danger">
+              {error}
+            </p>
+          ) : null}
+          {saved && !error ? (
             <p role="status" className="mt-1.5 text-xs text-status-success">
               Recorded and written to the activity trail.
             </p>
