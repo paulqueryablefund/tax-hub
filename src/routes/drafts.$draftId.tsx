@@ -263,7 +263,7 @@ function DraftReview() {
                       }}
                     >
                       <Check aria-hidden className="size-4" />
-                      Approve and send
+                      {roleBlocked ? "Approval requires signing authority" : "Blocked — evidence missing"}
                     </Button>
                     <p id="approve-block-reason" className="text-xs text-text-secondary">
                       {blockReason}
