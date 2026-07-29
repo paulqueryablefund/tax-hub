@@ -69,8 +69,8 @@ export const AREA_GLOSS: Record<AreaId, string> = {
  * ------------------------------------------------------------------ */
 
 export const WELCOME = {
-  title: `Werk Flow — what it is and how it works`,
-  explanation: `Werk Flow is a working hub for a Steuerkanzlei: it carries a Mandanten-Rückfrage from the moment it arrives to the moment a licensed professional signs off the reply. It does the preparation — classifying the request, naming exactly what is missing, finding the passages in your own sources, writing a first draft — and stops at every point where judgement and liability belong to a person. It is built for the people who prepare the work and for the Steuerberater and Partner who carry responsibility for what leaves the firm.`,
+  title: `TaxHub — what it is and how it works`,
+  explanation: `TaxHub is a working hub for a Steuerkanzlei: it carries a Mandanten-Rückfrage from the moment it arrives to the moment a licensed professional signs off the reply. It does the preparation — classifying the request, naming exactly what is missing, finding the passages in your own sources, writing a first draft — and stops at every point where judgement and liability belong to a person. It is built for the people who prepare the work and for the Steuerberater and Partner who carry responsibility for what leaves the firm.`,
   chainCaption: `Every area in the product sits somewhere on this chain. That is the only map you need.`,
   trust: `Three rules hold everywhere: every legal statement carries a citation to a passage you can open, an uncovered question is answered with "your sources do not cover this" rather than with a guess, and nothing reaches a Mandant without approval from someone whose role permits it.`,
   demoData: `The firm, its staff and its Mandanten in this environment are fictional and labelled as fictional wherever they appear. The legal sources are real: real statutes, real BMF-Schreiben, real passage text, with the publisher's own link.`,
@@ -117,8 +117,8 @@ export const WORKFLOW_CHAIN: { label: string; gloss: string }[] = [
 
 /** §1.9 — returning-user variant. */
 export const WELCOME_RETURNING = {
-  title: `Werk Flow — the short version`,
-  explanation: `A Mandanten-Rückfrage comes in, the system prepares it, a licensed professional signs it off. Werk Flow does the preparation and stops where liability starts.`,
+  title: `TaxHub — the short version`,
+  explanation: `A Mandanten-Rückfrage comes in, the system prepares it, a licensed professional signs it off. TaxHub does the preparation and stops where liability starts.`,
   trust: `Every legal statement carries a citation you can open. An uncovered question gets a refusal, not a guess. Nothing leaves the firm without an approval by someone whose role permits it.`,
   demoData: `Firm and Mandanten are fictional; the legal sources are real.`,
   close: `Close`,
@@ -169,7 +169,7 @@ export const AREA_POPUPS: Record<AreaId, AreaPopup> = {
   },
   sources: {
     title: `Sources — the library the answers come from`,
-    body: `Every statute, BMF-Schreiben and firm document that Werk Flow is allowed to answer from, each with a publisher, a real link, an effective date and a health state. Nothing else is used: this list is the outer boundary of what the product will say. It feeds Knowledge, the case summaries and every citation in a draft.`,
+    body: `Every statute, BMF-Schreiben and firm document that TaxHub is allowed to answer from, each with a publisher, a real link, an effective date and a health state. Nothing else is used: this list is the outer boundary of what the product will say. It feeds Knowledge, the case summaries and every citation in a draft.`,
     notice: `a source that has been overtaken is marked, not deleted. You need to know what the rule was on the day the advice was given, not only what it is today.`,
   },
   drafts: {
@@ -418,7 +418,7 @@ export const STEP_TOURS: Record<AreaId, TourStep[]> = {
     {
       anchor: `sources.header`,
       title: `The boundary of what the product will say`,
-      body: `This library is the outer limit of Werk Flow's knowledge. Anything not in here cannot appear in an answer, a summary or a draft, however well known it is.`,
+      body: `This library is the outer limit of TaxHub's knowledge. Anything not in here cannot appear in an answer, a summary or a draft, however well known it is.`,
       points: `the page header`,
     },
     {
@@ -887,8 +887,8 @@ export const MICROCOPY = {
 
 export const HUB = {
   title: `Guided tour`,
-  subtitle: `Everything Werk Flow can explain about itself, in one place.`,
-  intro: `Werk Flow follows one loop: a Mandanten-Rückfrage arrives, gets classified, gets a named list of what is missing, gets answered from the firm's own sources, gets drafted, gets approved by someone permitted to approve it, and gets recorded. Each area below is one link in that loop. Nothing on this page changes a case, a draft, a source or the audit trail.`,
+  subtitle: `Everything TaxHub can explain about itself, in one place.`,
+  intro: `TaxHub follows one loop: a Mandanten-Rückfrage arrives, gets classified, gets a named list of what is missing, gets answered from the firm's own sources, gets drafted, gets approved by someone permitted to approve it, and gets recorded. Each area below is one link in that loop. Nothing on this page changes a case, a draft, a source or the audit trail.`,
   fullTour: {
     title: `Take the whole loop`,
     body: `Nine areas in the order the work actually happens — not the order of the sidebar. Roughly fifteen minutes, and you can stop anywhere and pick it up later.`,
@@ -920,7 +920,7 @@ export const HUB = {
   },
   welcome: {
     title: `The welcome screen`,
-    body: `The short explanation of what Werk Flow is, the workflow loop, and the map of every area.`,
+    body: `The short explanation of what TaxHub is, the workflow loop, and the map of every area.`,
     button: `Open it again`,
   },
 } as const;

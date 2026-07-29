@@ -14,13 +14,13 @@ import { useTaxhub } from "@/features/taxhub/use-taxhub";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Overview — Werk Flow" },
+      { title: "Overview — TaxHub" },
       {
         name: "description",
         content:
           "Today's client requests, the items waiting for a professional's approval, and the health of the firm's source library.",
       },
-      { property: "og:title", content: "Overview — Werk Flow" },
+      { property: "og:title", content: "Overview — TaxHub" },
       {
         property: "og:description",
         content:
@@ -148,7 +148,7 @@ function Overview() {
 
         <Panel
           title="How this workspace answers"
-          description="The rules that apply to every answer in Werk Flow."
+          description="The rules that apply to every answer in TaxHub."
         >
           <ul className="space-y-3 text-sm text-text-primary">
             <Rule

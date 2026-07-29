@@ -27,13 +27,13 @@ import { displayStatus } from "@/features/taxhub/tour/tour-state";
 export const Route = createFileRoute("/tour")({
   head: () => ({
     meta: [
-      { title: "Guided tour — Werk Flow" },
+      { title: "Guided tour — TaxHub" },
       {
         name: "description",
         content:
           "Every area walkthrough, the full tour in workflow order, and a narrated replay of one complete case from arrival to approval.",
       },
-      { property: "og:title", content: "Guided tour — Werk Flow" },
+      { property: "og:title", content: "Guided tour — TaxHub" },
       {
         property: "og:description",
         content:

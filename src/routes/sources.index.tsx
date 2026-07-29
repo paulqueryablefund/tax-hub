@@ -40,13 +40,13 @@ const visibilityLabels = {
 export const Route = createFileRoute("/sources/")({
   head: () => ({
     meta: [
-      { title: "Sources — Werk Flow" },
+      { title: "Sources — TaxHub" },
       {
         name: "description",
         content:
           "The documents the assistant is allowed to answer from, with visibility, review dates and superseded versions.",
       },
-      { property: "og:title", content: "Sources — Werk Flow" },
+      { property: "og:title", content: "Sources — TaxHub" },
       {
         property: "og:description",
         content: "The documents the assistant may answer from, with review dates and versions.",
