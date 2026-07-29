@@ -1,13 +1,7 @@
-Reduce the sidebar "Demonstration control · signed in as" label size.
+The role switcher dropdown in the sidebar is being cut off because the option text includes `Katharina Brandt — Partner (may approve)`. The `(may approve)` / `(may not approve)` suffix makes the label too long for the narrow sidebar select.
 
-Current state
-- The compact role switcher in the sidebar renders the label at `text-[10px]` (`src/features/taxhub/components/role-switcher.tsx`, line 44).
-- This is the text the user wants smaller.
+Change:
+- In `src/features/taxhub/components/role-switcher.tsx`, remove the approval suffix from the `<option>` labels so each option reads only `{user.name} — {user.role}`.
+- Keep the toast/announcement on switch unchanged, so the user still hears whether the selected role may approve outgoing correspondence.
 
-Change
-- Lower the label font size from `text-[10px]` to `text-[9px]`.
-- Keep the uppercase tracking and muted sidebar color so it remains readable and consistent with the high-ticket navy sidebar design.
-- No other UI copy or layout changes.
-
-Files affected
-- `src/features/taxhub/components/role-switcher.tsx`
+No other UI or logic changes.
