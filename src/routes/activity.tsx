@@ -6,13 +6,13 @@ import { useTaxhub } from "@/features/taxhub/use-taxhub";
 export const Route = createFileRoute("/activity")({
   head: () => ({
     meta: [
-      { title: "Activity — Werk Flow" },
+      { title: "Activity — TaxHub" },
       {
         name: "description",
         content:
           "A record of what the assistant did, which sources it used or excluded, and every human decision on its output.",
       },
-      { property: "og:title", content: "Activity — Werk Flow" },
+      { property: "og:title", content: "Activity — TaxHub" },
       {
         property: "og:description",
         content: "What the assistant did, which sources it used, and every human decision.",

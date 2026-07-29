@@ -58,7 +58,7 @@ function AppChrome({ children }: { children: ReactNode }) {
           <div className="flex items-center justify-between gap-3 px-4 py-3 lg:block lg:py-4">
             <div className="min-w-0">
               <p className="font-serif text-base leading-tight font-medium text-text-primary">
-                Werk Flow
+                TaxHub
               </p>
               <p className="truncate text-xs text-text-secondary">{workspace.shortName}</p>
             </div>
