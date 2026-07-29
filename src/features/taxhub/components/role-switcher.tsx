@@ -37,10 +37,13 @@ export function RoleSwitcher({ compact = false }: { compact?: boolean }) {
   };
 
   return (
-    <div className={cn("min-w-0", compact ? "px-4 pb-3" : "")}>
+    <div className={cn("min-w-0", compact ? "px-5 pb-3" : "")}>
       <label
         htmlFor={compact ? "role-switcher-shell" : "role-switcher"}
-        className="block text-[11px] font-medium text-text-tertiary"
+        className={cn(
+          "block text-[10px] font-medium tracking-[0.05em] uppercase",
+          compact ? "text-sidebar-muted" : "text-text-tertiary",
+        )}
       >
         Demonstration control · signed in as
       </label>
@@ -49,7 +52,12 @@ export function RoleSwitcher({ compact = false }: { compact?: boolean }) {
         value={currentUser.id}
         disabled={setDemoUser.isPending}
         onChange={(e) => switchTo(e.target.value)}
-        className="mt-1 w-full rounded-sm border border-border-default bg-surface px-2 py-1.5 text-xs text-text-primary"
+        className={cn(
+          "mt-1.5 w-full rounded-sm border px-2 py-1.5 text-xs",
+          compact
+            ? "border-sidebar-border bg-sidebar-elevated text-sidebar-foreground"
+            : "border-border-default bg-surface text-text-primary",
+        )}
       >
         {users.map((user) => (
           <option key={user.id} value={user.id}>
