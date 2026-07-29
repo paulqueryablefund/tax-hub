@@ -58,30 +58,34 @@ function AppChrome({ children }: { children: ReactNode }) {
       </a>
 
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <aside className="shrink-0 border-b border-border-default bg-sidebar lg:w-60 lg:border-b-0 lg:border-r">
-          <div className="flex items-center justify-between gap-3 px-4 py-3 lg:block lg:py-4">
+        <aside className="flex shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:w-64 [&_:focus-visible]:outline-[var(--sidebar-ring)]">
+          <div className="flex items-center justify-between gap-3 px-5 py-4 lg:block lg:py-6">
             <div className="min-w-0">
-              <p className="font-serif text-base leading-tight font-medium text-text-primary">
+              <p className="font-serif text-[1.0625rem] leading-tight font-medium tracking-[-0.01em] text-sidebar-foreground">
                 TaxHub
               </p>
-              <p className="truncate text-xs text-text-secondary">{workspace.shortName}</p>
+              <p className="truncate text-[11px] tracking-[0.04em] text-sidebar-muted uppercase">
+                {workspace.shortName}
+              </p>
             </div>
-            <div className="flex items-center gap-2 lg:mt-4">
+            <div className="flex items-center gap-2.5 lg:mt-6">
               <span
                 aria-hidden
-                className="grid size-7 place-items-center rounded-full bg-action-primary text-xs font-semibold text-action-primary-fg"
+                className="grid size-8 place-items-center rounded-full bg-sidebar-elevated text-[11px] font-semibold tracking-[0.04em] text-sidebar-foreground ring-1 ring-sidebar-border"
               >
                 {user.initials}
               </span>
               <div className="hidden min-w-0 lg:block">
-                <p className="truncate text-xs font-medium">{user.name}</p>
-                <p className="truncate text-[11px] text-text-secondary">{user.role}</p>
+                <p className="truncate text-xs font-medium text-sidebar-foreground">{user.name}</p>
+                <p className="truncate text-[11px] text-sidebar-muted">{user.role}</p>
               </div>
             </div>
           </div>
 
-          <nav aria-label="Main" className="px-2 pb-3">
-            <ul className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
+          <div className="mx-5 hidden h-px bg-sidebar-border lg:block" />
+
+          <nav aria-label="Main" className="px-3 pb-4 lg:pt-4">
+            <ul className="flex gap-1 overflow-x-auto lg:flex-col lg:gap-0.5 lg:overflow-visible">
               {nav.map((item) => {
                 const active = item.exact
                   ? pathname === item.to
@@ -94,18 +98,19 @@ function AppChrome({ children }: { children: ReactNode }) {
                       data-tour={item.tour}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "flex items-center gap-2 rounded-sm px-2.5 py-2 text-sm transition-colors",
+                        "relative flex items-center gap-2.5 rounded-sm py-2.5 pr-2.5 pl-3.5 text-[13px] transition-colors duration-150",
+                        "before:absolute before:top-1/2 before:left-0 before:h-4 before:w-0.5 before:-translate-y-1/2 before:rounded-full before:transition-opacity",
                         active
-                          ? "bg-sidebar-accent font-medium text-text-primary"
-                          : "text-text-secondary hover:bg-sidebar-accent hover:text-text-primary",
+                          ? "bg-sidebar-accent font-medium text-sidebar-foreground before:bg-sidebar-primary before:opacity-100"
+                          : "text-sidebar-muted before:opacity-0 hover:bg-sidebar-elevated hover:text-sidebar-foreground",
                       )}
                     >
-                      <Icon aria-hidden className="size-4 shrink-0" />
-                      <span>{item.label}</span>
+                      <Icon aria-hidden className="size-4 shrink-0 opacity-90" />
+                      <span className="truncate">{item.label}</span>
                       {item.to === "/inbox" && reviewCount > 0 ? (
                         <span
                           data-tour="inbox.nav-badge"
-                          className="ml-auto rounded-sm bg-human-review-required-bg px-1.5 py-0.5 text-[11px] font-semibold text-human-review-required"
+                          className="ml-auto rounded-full bg-sidebar-primary px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-sidebar-primary-foreground"
                         >
                           {reviewCount}
                         </span>
@@ -118,14 +123,14 @@ function AppChrome({ children }: { children: ReactNode }) {
             </ul>
           </nav>
 
-          <p className="hidden px-4 pb-4 text-[11px] leading-relaxed text-text-tertiary lg:block">
+          <p className="hidden px-5 pb-5 text-[11px] leading-relaxed text-sidebar-muted lg:block">
             Demonstration workspace. All firm, client and document data is fictional. Practice-system
             integrations are mocked.
           </p>
 
-          <div className="border-t border-border-subtle pt-3">
+          <div className="mt-auto border-t border-sidebar-border pt-4">
             <RoleSwitcher compact />
-            <div className="px-4 pb-4">
+            <div className="px-3 pb-5">
               <SignOutButton />
             </div>
           </div>
@@ -151,7 +156,7 @@ function SignOutButton() {
         await router.invalidate();
         await router.navigate({ to: "/unlock" });
       }}
-      className="flex w-full items-center gap-2 rounded-sm px-2.5 py-2 text-xs text-text-secondary hover:bg-sidebar-accent hover:text-text-primary"
+      className="flex w-full items-center gap-2 rounded-sm px-2.5 py-2 text-xs text-sidebar-muted transition-colors hover:bg-sidebar-elevated hover:text-sidebar-foreground"
     >
       <LogOut aria-hidden className="size-3.5 shrink-0" />
       <span>Sign out of the workspace</span>
@@ -167,7 +172,7 @@ function TourNavBadge() {
   ).length;
   if (completed === 0) return null;
   return (
-    <span className="ml-auto rounded-sm bg-status-neutral-bg px-1.5 py-0.5 text-[11px] font-semibold text-status-neutral">
+    <span className="ml-auto rounded-full bg-sidebar-elevated px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-sidebar-muted">
       {completed}/{WORKFLOW_ORDER.length}
     </span>
   );
