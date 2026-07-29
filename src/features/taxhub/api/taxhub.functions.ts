@@ -1,21 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import type { Database } from "@/integrations/supabase/types";
 import type { KnowledgeResult, TaxhubSnapshot } from "../types";
 import { buildSnapshot } from "./snapshot.server";
 
-function publicClient() {
-  return createClient<Database>(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
-    { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
-  );
-}
-
-/** Reads the whole demo workspace. Public, read-only, no session required. */
+/**
+ * Reads the whole demo workspace. The firm and client rows are no longer
+ * readable by the anonymous role directly; the read happens server-side.
+ */
 export const getSnapshot = createServerFn({ method: "GET" }).handler(
-  async (): Promise<TaxhubSnapshot> => buildSnapshot(publicClient()),
+  async (): Promise<TaxhubSnapshot> => {
+    const { admin } = await import("./writes.server");
+    return buildSnapshot(await admin());
+  },
 );
 
 const eventInput = z.object({
