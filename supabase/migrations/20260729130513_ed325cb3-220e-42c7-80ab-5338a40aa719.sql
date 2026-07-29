@@ -1,0 +1,1 @@
+update public.intake_fields set value = null, status = 'missing' where request_id = 'r-1042' and id in ('f-commute','f-logbook') and (value = 'banana -999' or value = 'Maybe, we will decide mid-year');
