@@ -175,16 +175,18 @@ function AreaPopup({ area }: { area: AreaId }) {
         ref={ref}
         role="dialog"
         aria-labelledby={`tour-popup-${area}`}
-        className="pointer-events-auto w-full max-w-lg rounded-md border border-border-default bg-surface p-4 shadow-lg"
+        className="pointer-events-auto flex max-h-[min(70vh,32rem)] w-full max-w-lg flex-col rounded-md border border-border-default bg-surface p-4 shadow-lg"
       >
         <h2 id={`tour-popup-${area}`} className="type-section-title text-text-primary">
           {copy.title}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-text-primary">{copy.body}</p>
-        <p className="mt-2 text-sm text-text-primary">
-          <span className="font-medium">What to notice: </span>
-          {copy.notice}
-        </p>
+        <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
+          <p className="text-sm leading-relaxed text-text-primary">{copy.body}</p>
+          <p className="mt-2 text-sm text-text-primary">
+            <span className="font-medium">What to notice: </span>
+            {copy.notice}
+          </p>
+        </div>
         <div className="mt-3 flex items-center gap-2">
           <Checkbox
             id={`tour-popup-dismiss-${area}`}

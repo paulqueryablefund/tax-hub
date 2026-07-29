@@ -195,12 +195,13 @@ function SharedInstanceNotice() {
   return (
     <div className="flex items-start gap-3 rounded-md border border-border-default bg-subtle px-4 py-3 text-sm text-text-secondary">
       <p className="min-w-0 flex-1">
-        This is a shared demonstration instance. There is no sign-in and one database, so everyone
-        sees and changes the same data — a case may already be part-way through when you arrive.{" "}
+        <span className="font-medium text-text-primary">Shared workspace.</span> Your team signs in
+        to one database, so everyone sees and changes the same cases — a case may already be
+        part-way through when you arrive. You are working as Miriam Radtke;{" "}
         <Link to="/settings" className="underline underline-offset-2">
           Settings
         </Link>{" "}
-        resets it to the starting state in one click.
+        returns the demonstration data to its starting state.
       </p>
       <button
         type="button"

@@ -143,9 +143,9 @@ export interface AreaPopup {
 
 export const AREA_POPUPS: Record<AreaId, AreaPopup> = {
   overview: {
-    title: `Overview — the state of the firm's open work`,
-    body: `This is the screen you start on. It shows what is currently in flight across every Mandant and every stage of the chain, so you can see where a person is needed before opening a single case. Nothing originates here: Overview reads from the Inbox, the intake files and the drafts, and sends you into whichever one is blocking.`,
-    notice: `the counts here are derived from live case data, not stored anywhere — they cannot drift out of step with the cases they describe.`,
+    title: `Overview — the firm's open work`,
+    body: `The screen you start on: everything currently in flight, so you can see where a person is needed before opening a case. Nothing starts here — it points you into the case that is blocking.`,
+    notice: `every count is derived from live cases, never stored, so it cannot drift out of step.`,
   },
   inbox: {
     title: `Inbox — every request, classified`,
