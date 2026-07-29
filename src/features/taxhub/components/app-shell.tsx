@@ -140,6 +140,25 @@ function AppChrome({ children }: { children: ReactNode }) {
 }
 
 /** Derived, never stored: how many of the nine area tours are complete. */
+function SignOutButton() {
+  const router = useRouter();
+  const lock = useServerFn(lockSite);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        await lock({ data: undefined });
+        await router.invalidate();
+        await router.navigate({ to: "/unlock" });
+      }}
+      className="flex w-full items-center gap-2 rounded-sm px-2.5 py-2 text-xs text-text-secondary hover:bg-sidebar-accent hover:text-text-primary"
+    >
+      <LogOut aria-hidden className="size-3.5 shrink-0" />
+      <span>Sign out of the workspace</span>
+    </button>
+  );
+}
+
 function TourNavBadge() {
   const { state, hydrated } = useTour();
   if (!hydrated) return null;
